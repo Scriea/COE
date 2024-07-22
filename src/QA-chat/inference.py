@@ -7,8 +7,7 @@ MAX_LENGTH = 2048
 
 MODEL_DIRECTORY_MAP = {
     # "7b": "<give path to 7b model if you want to after cloning from github repo>",
-    "llama2-13b": "/raid/ganesh/nagakalyani/Downloads/Llama-2-13b-chat-hf",
-    "mixtral_8x7B": "/raid/ganesh/nagakalyani/Downloads/Mixtral-8x7B-Instruct-v0.1"
+    "llama2-13b": "/raid/ganesh/nagakalyani/Downloads/Llama-2-13b-chat-hf"
 }
 DEFAULT_SYSTEM_PROMPT = " You are an expert in assisting question-answering task. Answer the question based on the context below. Keep the answer short. Respond 'Unsure about answer' if not sure about the answer."
 
@@ -87,36 +86,9 @@ def generate_response(prompt, history, tokenizer, model, max_length=MAX_LENGTH, 
 
     return response
 
-
-def read_file(file_path):
-    with open(file_path, 'r') as f:
-        data = f.read()
-
-    return data
-
-
 def prompt_with_data_and_query(file_path, query):
     data = extract_pdf_text(file_path)
-
-#     prompt = f'''
-# Given the following extracted parts of a long document and a question, create a final answer with references ("SOURCES").
-# If you don't know the answer, just say that you don't know. Don't try to make up an answer.
-# ALWAYS return a "SOURCES" part in your answer.
-
-# ### INPUT DOCUMENT:
-# {data}
-
-# ### QUESTION:
-# {query}
-
-# '''
-# Content: ...
-# Source: ...
-# ...
-# =========
-# FINAL ANSWER:
-# SOURCES: 
-
+    
     prompt = f'''
 \n<</SYS>>\n\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n<</SYS>>\n\nGenerate the next agent response by answering the question. Answer it as succinctly as possible. If the answer comes from different documents please mention all possibilities in your answer and use the titles to separate between topics or domains. If you cannot answer the question from the given documents, please state that you do not have an answer.\n"""
 

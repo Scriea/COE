@@ -1,0 +1,24 @@
+{
+    "PATIENT_ID" : {
+        "ER" : [
+            {
+                "DOCUMENT_ID": 1,
+                "PASSAGES" : [
+                    "\nDischarge Summary\nPatient Name xxxxx  xxxxx Proc.                              Date 05032024 1400\nAge Gender40Yrs M\t\t\t\t\tProcedure No17760,,,,\n                                                      Hosp NoxxxxxCathLabSSB Siemens\nUnitCardio 1LocationCARDIOLOGY\nCARDIOLOGYWARD 5222GENERAL BEDS0\nStatusIPDMRD No2024013669\nCategoryABPMJAYInter. \t\t\t\tAttending DR. AVINASH A\n\t\t\t\t\tReferred BySecond AttendingDR. SIVAVIGNESH \n\t\t\t\t\t\tK E Admission Date040320241137  \t\tDischarge Date06032024 0002\n Time  Time\nCardiology Adm05032024  \n2055HCP\t\t\t\t\t Completion06032024 1027\nDate  Time Date  Time\nHCP Regn.                           Date 7904216729\t\tMobile No.\n  Time\n",
+                    "\nHISTORY  \nChief Complaint CAD ACSNSTEMI \nSVD OF LCX\n\nRISK FACTORS\nEx Smoker\n\nCLINICAL FINDINGS \nPhysical Exam  \nHeight  160 cms Weight  50 kgs BMI  19.53 Kgm2 \nPulse Rate  80 min BPSystolicDiastolic 12080 mmHg \nCardiac Enlargement  No JVP  Normal \nPallor  No Edema  No S1  \nNormal S2  Normal \nChest  NVBS\n",
+                    "\nLab Findings \n28022024\nHIV negative HepatitisB negative HCV negative\n28022024 \nHb  14.8 \ngmdl\nPlatelet Count  444000 cu.mm BU  23 mgdl Creatinine  0.8 mgdl\n04032024 \nBlood Glucose  RBS  100  \nMgdl\n"
+                ]
+            },
+            {
+                "DOCUMENT_ID": 2,
+                "PASSAGES" : [
+                    "\nECG  \n28022024 \nNSR AT 80 BPM \nTWI IN LEAD II , III, \nV5V6\n\nEchocardiography  \n28022024 \nNo regional wall motion abnormality, \nLVEF  60 \n",
+                    "\nADVICE  DISCHARGE \n1. Regular medications  STOP SMOKING.\n2. Avoid Alcohol, Heavy exertion and lifting weights.\n3. Diet  High fiber, low cholesterol, low sugar no sugar if diabetic, fruits, \nvegetables 5 servings per day.\n4. Exercise  Walk at least for 30 minutes daily. Avoid if Chest pain.\n5. TARGETS  LDL70mgdl BP  12080mmHg  Sugar Fasting  100mgdl \nPost Breakfast  150mgdl  BMI25kgm2.\n6. IF CHEST PAIN  T.ANGISED 0.6 mg or T.SORBITRATE 5 mg keep under \ntongue. Repeat if no relief  5 minutes and report to nearest doctor for urgent\nECG.\nCAPTAB ASPIRIN 75 MG Route ORAL Frequency 0\n10 \nCAPTAB AXCER 90 MG Route ORAL Frequency 10\n01 \nCAPTAB ATORVAS 40 MG Route ORAL Frequency \n0001 \nCAPTAB ENVAS 5 MG Route ORAL Frequency 00\n01 \nCAPTAB METOPROLOL XL 12.5 MG Route ORAL \nFrequency 1000 \nCAPTAB SORBITRATE 5 MG Route ORAL \nFrequency SOS \nCAPTAB FAMOTIDINE 20 MG Route ORAL \n",
+                    "\nDIET ADVICE \n1.  1500 CaloriesKCal \n\n",
+                    "\nPROCEDURES DETAILS  Detailed Procedure report is attached\nProcedures Done  Coronary \nIntervention \nProcedure Date  05032024 \nProcedure Number  \n17760,,,, Consultant  \nDR. AVINASH A \nDiagnostic Attending  DR. GULBADIN \nMUFTI \nResident Cathlab  DR. SIVAVIGNESH K E\n\nRESULT \nIntervention  1. Successful Intervention of LCx  \nOM1 Ostial  Drug Eluting stent 2. Successful Intervention of LCx  LPDA  Drug Eluting stent\n\nIN HOSPITAL COURSE \nUneventful\n\nFINAL DIAGNOSIS\nDiagnosis  Old myocardial infarction I25.2\n\nCONDITION AT DISCHARGE  \nHemodynamically stable and \nasymptomatic \n\n"
+
+                ]
+            }
+        ]
+    }
+}

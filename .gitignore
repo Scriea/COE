@@ -1,5 +1,5 @@
 temp/
-
+*.pdf
 *.npz
 
 # Byte-compiled / optimized / DLL files

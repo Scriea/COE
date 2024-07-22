@@ -7,6 +7,7 @@ import numpy as np
 from src.attribution.attrb import AttributionModule
 from src.generator.generator import Generator
 from src.generator import prompts
+from src.hallucheck.hallucination import HalluCheck
 
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
@@ -23,9 +24,14 @@ def load_attribution_module():
 def load_generator():
     return Generator(model_name=chat_model, device="cuda:6")
 
+@st.cache_resource
+def load_hallucination_checker():
+    return HalluCheck(device="cuda:7", method="POS")
+
 # Initialize modules
 attribution_module = load_attribution_module()
 generator = load_generator()
+hallucination_checker = load_hallucination_checker()
 
 # Streamlit app layout
 st.title("Medical Agent")
@@ -44,7 +50,7 @@ if st.button("Get Response"):
     if user_query:
         # Generate response
         prompt = prompts.medical_prompt.format(passages, user_query)
-        print(prompt)
+        # print(prompt)
         response = generator.generate_response(prompt)
         
         st.subheader("Generated Response")
@@ -55,5 +61,10 @@ if st.button("Get Response"):
         retrieved_passages = retrieval_results[0]['retrieved_paragraphs'][0]
         st.subheader("Attribution")
         st.write(retrieved_passages)
+
+        # Check for hallucination
+        hallucination_probability = hallucination_checker.hallucination_prop(response)
+        st.subheader("Hallucination Probability")
+        st.write(f"{hallucination_probability * 100:.2f}%")
     else:
         st.error("Please enter a query.")

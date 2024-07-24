@@ -9,14 +9,6 @@ import json
 import math
 import string
 
-# # nlp_model = spacy.load("en_core_web_sm")
-# stanza.download('en')     
-# nlp_ner = stanza.Pipeline(lang='en', processors='tokenize,ner')
-# nlp_pos = stanza.Pipeline(lang='en', processors='tokenize,pos')
-# nlp_coreref = stanza.Pipeline("en", processors="tokenize,coref")
-# nlp_sent = spacy.load("en_core_web_sm")
-
-
 ## ----------------------------------------------------------------
 
 """
@@ -37,9 +29,6 @@ def normalize_answer(s):
     def remove_punc(text):
         exclude = set(string.punctuation)
         return "".join(ch for ch in text if ch not in exclude)
-
-    # def lower(text):
-    #     return text.lower()
 
     return white_space_fix(remove_articles(remove_punc(s.lower())))
 

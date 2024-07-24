@@ -1,6 +1,8 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+from typing import List
+
 
 import spacy
 from scipy.stats import kstest
@@ -22,9 +24,7 @@ import random
 from datasets import load_dataset
 from utils import compute_f1, softmax, find_subset_indices, extract_text_between_double_quotes
 
-stanza.download('en')     
-# nlp_sent = spacy.load("en_core_web_sm")
-
+# stanza.download('en')     
 
 class HalluCheck:
     def __init__(self, device=None, method="POS"):
@@ -42,37 +42,56 @@ class HalluCheck:
 
         self.qa_model = pipeline("question-answering", device=self.device)
         
+        # self.tokenizer = AutoTokenizer.from_pretrained(
+        #     "meta-llama/Llama-2-7b-chat-hf" , 
+        #     padding = True
+        # )
+        # self.model = AutoModelForCausalLM.from_pretrained(
+        #     "meta-llama/Llama-2-7b-chat-hf" , 
+        #     trust_remote_code=True, 
+        #     output_attentions=True, 
+        #     device_map=self.device
+        # )
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "meta-llama/Llama-2-7b-chat-hf" , 
+            "mistralai/Mistral-7B-Instruct-v0.1",
             padding = True
         )
         self.model = AutoModelForCausalLM.from_pretrained(
-            "meta-llama/Llama-2-7b-chat-hf" , 
+            "mistralai/Mistral-7B-Instruct-v0.1", 
             trust_remote_code=True, 
             output_attentions=True, 
             device_map=self.device
         )
-        # self.tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1", padding = True)
-        # self.model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1", trust_remote_code=True, output_attentions=True, device_map=self.device)
         self.model.to(self.device)
         self.tokenizer.pad_token_id = self.tokenizer.bos_token_id
         self.tokenizer.padding_side = "left"
 
     
 
-    def hallucination_prop(self, text):
+    def hallucination_prop(self, text, context=""):
         generated_question_answer_list = self.generate_questions_based_on_factual_parts(sentence=text)
-        regenerated_answers, scores = self.generate_pinpointed_answers(generated_question_answer_list)
+        print("\n\nGenerated Questions", generated_question_answer_list)
+        regenerated_answers, scores = self.generate_pinpointed_answers(generated_question_answer_list, context=context)
+
+        print("\n\nRegenerated Answers", regenerated_answers)
         generated_questions = [generated_question_answer[0] for generated_question_answer in generated_question_answer_list]
         initial_hallu = self.compare_orig_and_regenerated(generated_questions, text, regenerated_answers)
+        print("\n\nInitial Hallucination", initial_hallu)
         final_hallu = self.check_with_probability(regenerated_answers, initial_hallu[2], scores, initial_hallu[0])
         prob_hallu = sum(final_hallu)/len(final_hallu)
         return prob_hallu
     
 
-    def generate_questions_based_on_factual_parts(self, sentence):
-        #Extracting atomic facts
-        def get_question(answer, context, max_length=64):
+    def generate_questions_based_on_factual_parts(self, sentence:str)->List[List[str]]:
+        """
+        Description:
+            This function generates questions based on the factual parts of the sentence.
+        
+        Args:
+            sentence (str): The input sentence for which questions are to be generated.
+        
+        """
+        def get_question(answer, context, max_length=128):
             input_text = "answer: %s  context: %s </s>" % (answer, context)
             features = self.tokenizer_ques_gen([input_text], return_tensors='pt')
             features = features.to(self.device)
@@ -81,6 +100,7 @@ class HalluCheck:
                         max_length=max_length)
             ques = self.tokenizer_ques_gen.decode(output[0])
             return ques
+        
         if self.method == 'POS':
             double_quote_words = extract_text_between_double_quotes(sentence)
             text = sentence
@@ -135,23 +155,22 @@ class HalluCheck:
             random_facts_indices = random.sample(range(0, len(sentence.split())), num_random_facts)
             output_list = [sentence.split()[index] for index in random_facts_indices]
 
-        # print(self.method," ", output_list)
         questions_answer_list = []
         pattern = r'<pad> question: (.+?)</s>'
-        # print("Atomic facts", output_list)
+        print("Atomic facts", output_list)
+
+
         for atomic_fact in output_list:
             gen_ques = get_question(atomic_fact, sentence)
             gen_ques = re.search(pattern, gen_ques).group(1)
-            # if output_list.any() in gen_ques:
             questions_answer_list.append([gen_ques, atomic_fact])
         return questions_answer_list
     
 
-    def generate_pinpointed_answers(self, generated_question_answer_list):
+    def generate_pinpointed_answers(self, generated_question_answer_list, context):
         ## try with chat template
-        # prompt = [f"System: You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. \nUser: {question_answer[0]} \nAssistant:" for question_answer in generated_question_answer_list]
         # prompt = [f"{question_answer[0]}" for question_answer in generated_question_answer_list]
-        prompt = [f"<s>[INST] Question: {question_answer[0]}\n Answer with reasoning: [/INST]" for question_answer in generated_question_answer_list]
+        prompt = [f"<s>[INST]Background Information:{context} Question: {question_answer[0]}\n Answer with reasoning: [/INST]" for question_answer in generated_question_answer_list]
         tokenized_inputs = self.tokenizer.batch_encode_plus(prompt, return_tensors="pt", padding = "longest", return_attention_mask = True)
         tokenized_inputs = tokenized_inputs.to(self.device)
         N=tokenized_inputs['input_ids'].shape[1]
@@ -160,7 +179,7 @@ class HalluCheck:
             **tokenized_inputs, 
             return_dict_in_generate=True, 
             output_scores=True, 
-            max_new_tokens = 100, 
+            max_new_tokens = 64, 
             # early_stopping=True,
             # num_beams=8,
             )
@@ -240,5 +259,5 @@ if __name__=="__main__":
     ## Example Usage
 
     HC = HalluCheck(device="cuda:7", method= "POS" )
-    hallucination_prop = HC.hallucination_prop("The capital of France is India.")
+    hallucination_prop = HC.hallucination_prop("The capital of France is Mumbai.")
     print("Probability of Hallucination : ", hallucination_prop)

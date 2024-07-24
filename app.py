@@ -41,7 +41,7 @@ user_query = st.text_input("Enter your medical query:")
 
 passages_file = os.path.join(ROOT_DIR, "data", "passages.json")
 passages = attribution_module.load_paragraphs(passages_file=passages_file)
-passages = "\n".join(passages)
+joint_passages = "\n".join(passages)
 
 embedding_file_path = os.path.join(attribution_module.output_dir, "paragraph_embeddings.npz")
 search_index, paragraphs = attribution_module.create_faiss_index(embedding_file_path=embedding_file_path, ngpu=1)
@@ -49,7 +49,7 @@ search_index, paragraphs = attribution_module.create_faiss_index(embedding_file_
 if st.button("Get Response"):
     if user_query:
         # Generate response
-        prompt = prompts.medical_prompt.format(passages, user_query)
+        prompt = prompts.medical_prompt.format(joint_passages, user_query)
         # print(prompt)
         response = generator.generate_response(prompt)
         
@@ -63,7 +63,7 @@ if st.button("Get Response"):
         st.write(retrieved_passages)
 
         # Check for hallucination
-        hallucination_probability = hallucination_checker.hallucination_prop(response)
+        hallucination_probability = hallucination_checker.hallucination_prop(response, context=joint_passages)
         st.subheader("Hallucination Probability")
         st.write(f"{hallucination_probability * 100:.2f}%")
     else:

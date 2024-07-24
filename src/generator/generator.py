@@ -29,7 +29,7 @@ class Generator:
                 input_ids, 
                 attention_mask=attention_mask, 
                 pad_token_id=self.tokenizer.pad_token_id,
-                temperature=0.9,
+                temperature=0.6,
                 do_sample=True)
 
         # Decode the response

@@ -1,0 +1,11 @@
+numpy
+torch
+torchvision
+torchaudio
+transformers
+sentencepiece
+accelerate
+scikit-learn
+stanza
+spacy
+pandas

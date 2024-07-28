@@ -60,10 +60,10 @@ class AttributionModule:
         
         return search_index, data['paragraphs']
 
-    def retrieve_paragraphs(self, queries, search_index, paragraphs, k=1):
-        query_embeddings = self.model.encode(queries, show_progress_bar=True, batch_size=16, convert_to_numpy=True, device=self.device)
+    def retrieve_paragraphs(self, texts, search_index, paragraphs, k=1):
+        query_embeddings = self.model.encode(texts, show_progress_bar=True, batch_size=16, convert_to_numpy=True, device=self.device)
         D, I = search_index.search(query_embeddings, k)
-        return self.create_retrieval_results(queries, I, paragraphs, D)
+        return self.create_retrieval_results(texts, I, paragraphs, D)
 
     def create_retrieval_results(self, queries, indices, paragraphs, distances):
         results = []

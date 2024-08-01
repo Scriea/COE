@@ -15,16 +15,9 @@ st.set_page_config(page_title="💬 Medical Agent")
 # Input for user query
 with st.sidebar:
     st.title("Medical Agent")
-    st.write("This is a chatbot that can answer medical queries.")
+    st.write("This is a chatbot that can answer medical queries from discharge summaries.")
 
-# Initialize session state for chat history
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = [{"role": "assistant", "content": "How may I assist you today?"}]
 
-# Display or clear chat messages
-for message in st.session_state.chat_history:
-    with st.chat_message(message["role"]):
-        st.write(message["content"])
 
 ## General Configuration
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
@@ -32,18 +25,20 @@ EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
 device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
 chat_model = "meta-llama/Llama-2-7b-chat-hf" 
 attribution_model = "meta-llama/Llama-2-7b-chat-hf" 
+# hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
+hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 @st.cache_resource
 def load_attribution_module():
-    return AttributionModule(device="cuda:7")
+    return AttributionModule(device="cuda:6")
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_name=chat_model, device="cuda:6")
+    return Generator(model_path=chat_model, device="cuda:7")
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:7", method="POS")
+    return HalluCheck(device="cuda:6", method="MED", model_path=hallucination_model)
 
 def get_response(user_query):
     # Generate response
@@ -54,19 +49,35 @@ def get_response(user_query):
     attribution_query = f"Question: {user_query}\nAnswer: {response}"
     # Retrieve relevant paragraphs - Attribution Module
     retrieval_results = attribution_module.retrieve_paragraphs([attribution_query], search_index, paragraphs, k=1)
+    print("\n\nRetrieval Results:\n\n",retrieval_results)
     retrieved_passages = retrieval_results[0]['retrieved_paragraphs'][0]
 
     # Check for hallucination
-    hallucination_probability = hallucination_checker.hallucination_prop(response, context="")
+    hallucination_probability = hallucination_checker.hallucination_prop(response, context="joint_passages")
 
     # Compile the response message
-    assistant_message = f"**Generated Response:** {response}\n\n**Attribution:** {retrieved_passages}\n\n**Hallucination Probability:** {hallucination_probability * 100:.2f}%"
+    assistant_message_parts = [
+        f"**Generated Response:** {response}",
+        f"**Attribution:** {retrieved_passages}",
+        f"**Hallucination Probability:** {hallucination_probability * 100:.2f}%"
+    ]
+    assistant_message = "\n\n".join(assistant_message_parts)
     return assistant_message
 
 # Initialize modules
 attribution_module = load_attribution_module()
 generator = load_generator()
 hallucination_checker = load_hallucination_checker()
+
+
+# Initialize session state for chat history
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = [{"role": "assistant", "content": "How may I assist you today?"}]
+
+# Display or clear chat messages
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
 
 ## Processing Document
 passages_file = os.path.join(ROOT_DIR, "data", "passages.json")

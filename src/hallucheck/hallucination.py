@@ -5,6 +5,7 @@ from typing import List
 
 
 import spacy
+import scispacy
 from scipy.stats import kstest
 import numpy as np
 from transformers import (
@@ -24,15 +25,16 @@ import random
 from datasets import load_dataset
 from utils import compute_f1, softmax, find_subset_indices, extract_text_between_double_quotes
 
-# stanza.download('en')     
 
 class HalluCheck:
-    def __init__(self, device=None, method="POS"):
+    def __init__(self, device=None, method="POS", model_path="HPAI-BSC/Llama3-Aloe-8B-Alpha"):
         self.method = method.upper()
         if self.method=="NER":
             self.nlp = stanza.Pipeline(lang='en', processors='tokenize,ner')
         elif self.method=="POS":
             self.nlp = stanza.Pipeline(lang='en', processors='tokenize,pos')
+        elif self.method=="MED":
+            self.nlp = spacy.load("en_ner_bc5cdr_md")
 
         if device is None:
             device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -42,26 +44,17 @@ class HalluCheck:
 
         self.qa_model = pipeline("question-answering", device=self.device)
         
-        # self.tokenizer = AutoTokenizer.from_pretrained(
-        #     "meta-llama/Llama-2-7b-chat-hf" , 
-        #     padding = True
-        # )
-        # self.model = AutoModelForCausalLM.from_pretrained(
-        #     "meta-llama/Llama-2-7b-chat-hf" , 
-        #     trust_remote_code=True, 
-        #     output_attentions=True, 
-        #     device_map=self.device
-        # )
         self.tokenizer = AutoTokenizer.from_pretrained(
-            "mistralai/Mistral-7B-Instruct-v0.1",
+            model_path,
             padding = True
         )
         self.model = AutoModelForCausalLM.from_pretrained(
-            "mistralai/Mistral-7B-Instruct-v0.1", 
+            model_path, 
             trust_remote_code=True, 
             output_attentions=True, 
             device_map=self.device
         )
+
         self.model.to(self.device)
         self.tokenizer.pad_token_id = self.tokenizer.bos_token_id
         self.tokenizer.padding_side = "left"
@@ -154,6 +147,11 @@ class HalluCheck:
             num_random_facts = len([ent.text for sent in ner_sent.sentences for ent in sent.ents])
             random_facts_indices = random.sample(range(0, len(sentence.split())), num_random_facts)
             output_list = [sentence.split()[index] for index in random_facts_indices]
+        elif self.method=="MED":
+            ner_sent = self.nlp(sentence)
+            output_list = [ent.text for ent in ner_sent.ents]
+            ## Make Unique
+            output_list = list(set(ent.lower() for ent in output_list))
 
         questions_answer_list = []
         pattern = r'<pad> question: (.+?)</s>'
@@ -179,7 +177,7 @@ class HalluCheck:
             **tokenized_inputs, 
             return_dict_in_generate=True, 
             output_scores=True, 
-            max_new_tokens = 64, 
+            max_new_tokens = 32, 
             # early_stopping=True,
             # num_beams=8,
             )
@@ -253,11 +251,8 @@ class HalluCheck:
         return not_match
     
 
-
-
 if __name__=="__main__":
     ## Example Usage
-
     HC = HalluCheck(device="cuda:7", method= "POS" )
     hallucination_prop = HC.hallucination_prop("The capital of France is Mumbai.")
     print("Probability of Hallucination : ", hallucination_prop)

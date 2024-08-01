@@ -1,6 +1,8 @@
 temp/
 *.pdf
 *.npz
+/temp.py
+run/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

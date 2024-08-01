@@ -1,0 +1,107 @@
+{
+    "PATIENT_1":[
+        {
+            "question": "What medications do I need to continue taking, and what are their dosages?"
+        },
+        {
+            "question": "What lifestyle changes should I make to improve my heart health?"
+        },
+        {
+            "question":"What was the outcome of my angiography procedure?",
+            "attribution":""
+        },
+        {
+            "question":"What medications should I take and how often?",
+            "attribution":""
+        },
+        {
+            "question":"What diet should I follow to manage my condition?",
+            "attribution":""
+        },
+        {
+            "question":"What are the targets I should aim for in terms of blood pressure, sugar levels, and BMI?",
+            "attribution":""
+        },
+        {
+            "question":"What should I do if I experience chest pain?",
+            "attribution":""
+        },
+        {
+            "question":"When is my follow-up appointment, and where should I go?",
+            "attribution":""
+        },
+        {
+            "question":"What is the significance of my echocardiography report, and what does it mean for my condition?",
+            "attribution":""
+        },
+        {
+            "question":"How long should I avoid heavy exertion and lifting weights?",
+            "attribution": ""
+        },
+        {
+            "question":"What are the next steps in my treatment plan, and what can I expect in the coming weeks/months?",
+            "attribution":""
+        }
+    ],
+    "PATIENT_2":[
+        {
+            "question":"What was the outcome of my angiography procedure?",
+            "attribution":""
+            },
+            {
+                "question":"What diet should I follow to manage my condition?",
+                "attribution":""
+            },
+            {
+                "question":"What are the targets I should aim for in terms of blood pressure, sugar levels, and BMI?",
+                "attribution":""
+            },
+            {
+                "question":"When is my follow-up appointment, and where should I go?",
+                "attribution":""
+            },
+            {
+                "question":"What medications should I take and how often?",
+                "attribution":""
+            },
+            {
+                "question":"How long should I avoid heavy exertion and lifting weights?",
+                "attribution": ""
+            },
+            {
+                "question":"What are the next steps in my treatment plan, and what can I expect in the coming weeks/months?",
+                "attribution":""
+            }
+    ],
+    "PATIENT_3":[
+        
+            {
+                "question":"What medications should I take and how often?",
+                "attribution":""
+            },
+            {
+                "question":"What diet should I follow to manage my condition?",
+                "attribution":""
+            },
+            {
+                "question":"What are the targets I should aim for in terms of blood pressure, sugar levels, and BMI?",
+                "attribution":""
+            },
+            {
+                "question":"When is my follow-up appointment, and where should I go?",
+                "attribution":""
+            },
+            {
+                "question":"What medications should I take and how often?",
+                "attribution":""
+            },
+            {
+                "question":"How long should I avoid heavy exertion and lifting weights?",
+                "attribution": ""
+            },
+            {
+                "question":"What are the next steps in my treatment plan, and what can I expect in the coming weeks/months?",
+                "attribution":""
+            }
+    ]
+}

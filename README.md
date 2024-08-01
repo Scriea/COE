@@ -10,3 +10,8 @@ pip install -r requirements.txt
 ```
 streamlit run app.py
 ```
+
+
+### References
+
+- https://allenai.github.io/scispacy/

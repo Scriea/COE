@@ -37,7 +37,7 @@ class AttributionModule:
     def load_paragraphs(self, passages_file):
         with open(passages_file) as f:
             record = json.load(f)
-        patient_electronic_record = record["PATIENT_ID"]["ER"]
+        patient_electronic_record = record[0]["PATIENT_1"]["ER"]
         
         paragraphs = []
         for record in patient_electronic_record:
@@ -83,7 +83,6 @@ class AttributionModule:
         print(f"Retrieval results saved to {output_path}.")
 
 if __name__ == "__main__":
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
     module = AttributionModule(device="cuda:7")    
     passage_file = os.path.join(DATA_DIR,"passages.json")

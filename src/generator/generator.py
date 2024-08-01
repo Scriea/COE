@@ -2,6 +2,7 @@ import os
 import torch
 from .prompts import medical_prompt
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import BitsAndBytesConfig
 
 class Arguments:
     def __init__(self):
@@ -10,10 +11,11 @@ class Arguments:
 
 
 class Generator:
-    def __init__(self, model_name, device=torch.device('cuda')):
-        self.model_path = model_name
+    def __init__(self, model_path, device=torch.device('cuda')):
+        self.model_path = model_path
         self.device = device
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_path).to(device)
+        self.quantization_config = BitsAndBytesConfig(load_in_4bit=True,device=device)
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_path,quantization_config=self.quantization_config)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -31,7 +33,8 @@ class Generator:
                 pad_token_id=self.tokenizer.pad_token_id,
                 temperature=0.4,
                 num_beams=5,
-                do_sample=True)
+                do_sample=True,
+                max_new_tokens=512)
 
         # Decode the response
         response = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)

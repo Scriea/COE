@@ -28,15 +28,24 @@
         "attribution":""
     },
     {
-        "question":"What medications should I take and how often?",
-        "attribution":""
-    },
-    {
         "question":"How long should I avoid heavy exertion and lifting weights?",
         "attribution": ""
     },
     {
         "question":"What are the next steps in my treatment plan, and what can I expect in the coming weeks/months?",
         "attribution":""
+    },
+    {
+        "question":"What medications do I need to continue taking, and what are their dosages?",
+        "attribution":""
+    },
+    {
+        "question":"What lifestyle changes should I make to improve my heart health?",
+        "attribution":""
+    },
+    {
+        "question":"What are the dietary restrictions I need to follow?",
+        "attribution":""
     }
+
 ]

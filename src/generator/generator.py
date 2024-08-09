@@ -11,47 +11,68 @@ class Arguments:
 
 
 class Generator:
-    def __init__(self, model_path, device=torch.device('cuda')):
+    def __init__(self, model_path, device=None):
         self.model_path = model_path
+        if device is None:
+            device = torch.device('cuda:' if torch.cuda.is_available() else 'cpu')
         self.device = device
-        self.quantization_config = BitsAndBytesConfig(load_in_4bit=True,device=device)
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_path,quantization_config=self.quantization_config)
+        self.quantization_config = BitsAndBytesConfig(load_in_4bit=True,device=self.device)
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_path,quantization_config=self.quantization_config, device_map=self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
     def generate_response(self,input_text):
-        # Tokenize the input and create attention mask
-        inputs = self.tokenizer.encode_plus(input_text, return_tensors="pt", padding=True)
-        input_ids = inputs["input_ids"].to(self.device)
-        attention_mask = inputs["attention_mask"].to(self.device)
+        "Sequential generation of response"
+        if isinstance(input_text, list):
+            tokenized_inputs = self.tokenizer.batch_encode_plus(input_text, return_tensors="pt", padding="longest", return_attention_mask = True)
+            tokenized_inputs = tokenized_inputs.to(self.device)
+            N=tokenized_inputs['input_ids'].shape[1]
 
-        # Generate a response
-        with torch.no_grad():
-            output_ids = self.model.generate(
-                input_ids, 
-                attention_mask=attention_mask, 
-                pad_token_id=self.tokenizer.pad_token_id,
-                temperature=0.4,
-                num_beams=5,
+            outputs = self.model.generate(
+                **tokenized_inputs, 
+                return_dict_in_generate=True, 
+                output_scores=True, 
+                max_new_tokens = 128, 
+                # early_stopping=True,
+                # num_beams=8,
                 do_sample=True,
-                max_new_tokens=512)
+                temperature=0.9,
+                )
+            predicted_token_ids = outputs['sequences']
+            answers = self.tokenizer.batch_decode(predicted_token_ids[:, N:], skip_special_tokens=True)
+            return answers
 
-        # Decode the response
-        response = self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
-        
-        # Extract the actual response text
-        response_text = response[len(input_text):].strip()
 
-        return response_text
+        elif isinstance(input_text, str):
+            inputs = self.tokenizer(input_text, return_tensors="pt", padding=True)
+            input_ids = inputs["input_ids"].to(self.device)
+            attention_mask = inputs["attention_mask"].to(self.device)
+            N=inputs['input_ids'].shape[1]
+            # Generate a response
+            with torch.no_grad():
+                output_ids = self.model.generate(
+                    input_ids, 
+                    attention_mask=attention_mask, 
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    temperature=0.4,
+                    # num_beams=5,
+                    do_sample=True,
+                    max_new_tokens=512)
 
+            # Decode the response
+            response_text = self.tokenizer.decode(output_ids[0,N:], skip_special_tokens=True)
+            return response_text
+
+        else:
+            raise ValueError("Input text should be a string or a list of strings") 
+         
 if __name__=="__main__":
 
     args = Arguments()
-    os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
     # Usage example
     
-    generator = Generator(model_name=args.llama2chat, device=device)
+    generator = Generator(model_path=args.llama2chat, device=device)
         
     question = "I am feeling chest pain, what should I do?"
     context = """

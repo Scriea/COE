@@ -14,13 +14,13 @@ from src.attribution.evaluation import AutoAIS
 import warnings
 warnings.filterwarnings("ignore")
 
-device="cuda:7" if torch.cuda.is_available() else "cpu"
+device="cuda:1" if torch.cuda.is_available() else "cpu"
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run AutoAIS on a given text and attribution.")
-    parser.add_argument("-d","--data", type=str, help="Path to evaluation file json.", default="")
+    parser.add_argument("-d","--data", type=str, help="Path to evaluation file json.", required=True)
     args = parser.parse_args()
     
     questions = []

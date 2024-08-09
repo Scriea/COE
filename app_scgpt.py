@@ -1,19 +1,18 @@
 import os
 import subprocess
-import json
 import torch
-import spacy
-nlp = spacy.load("en_core_web_sm")
 import streamlit as st
-import numpy as np
+import spacy
 from src.attribution.attrb import AttributionModule
 from src.generator.generator import Generator
 from src.generator import prompts
-from src.hallucination.hallucination import HalluCheck, SelfCheckGPT
-import re
+from src.hallucination.hallucination import SelfCheckGPT
 
 # Streamlit Configuration
 st.set_page_config(page_title="💬 Medical Agent")
+
+# Load SpaCy model for sentence tokenization
+nlp = spacy.load("en_core_web_sm")
 
 # Input for user query
 with st.sidebar:
@@ -24,27 +23,21 @@ with st.sidebar:
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
 device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
-chat_model = "meta-llama/Llama-2-7b-chat-hf" 
-attribution_model = "meta-llama/Llama-2-7b-chat-hf" 
-# hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
+chat_model = "meta-llama/Llama-2-7b-chat-hf"
+attribution_model = "meta-llama/Llama-2-7b-chat-hf"
 hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 @st.cache_resource
 def load_attribution_module():
-    return AttributionModule(device="cuda:4")
+    return AttributionModule(device="cuda:1")
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_path=chat_model, device="cuda:7")
+    return Generator(model_path=chat_model, device="cuda:3")
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:4", method="MED", model_path=hallucination_model)
-
-# def split_sentences(text):
-#     # This function splits the text into sentences
-#     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
-#     return sentences
+    return SelfCheckGPT(device="cuda:1", model=hallucination_model)
 
 def split_sentences(text):
     # Use SpaCy to split the text into sentences
@@ -55,24 +48,25 @@ def split_sentences(text):
 def get_response(user_query):
     # Generate response
     prompt = prompts.medical_prompt.format(joint_passages, user_query)
-    response = generator.generate_response(prompt)
+    answer = generator.generate_response(prompt)
+    responses = generator.generate_response([prompt] * 5)
     
     # Attribution
-    attribution_query = f"Question: {user_query}\nAnswer: {response}"
+    attribution_query = f"Question: {user_query}\nAnswer: {answer}"
     # Retrieve relevant paragraphs - Attribution Module
     retrieval_results = attribution_module.retrieve_paragraphs([attribution_query], search_index, paragraphs, k=1)
-    print("\n\nRetrieval Results:\n\n",retrieval_results)
+    print("\n\nRetrieval Results:\n\n", retrieval_results)
     retrieved_passages = retrieval_results[0]['retrieved_paragraphs'][0]
 
     # Check for hallucination
-    hallucination_probabilities = hallucination_checker.hallucination_prop(response, context="joint_passages")
+    hallucination_probability = hallucination_checker.hallucination_prop(answer, Passages=responses)
 
-    # Split response into sentences
-    sentences = split_sentences(response)
+    # Split response into sentences using SpaCy
+    sentences = split_sentences(answer)
     
     # Compile the response with hallucination probabilities
     response_with_hallucination = []
-    for sentence, prob in zip(sentences, hallucination_probabilities):
+    for sentence, prob in zip(sentences, hallucination_probability):
         if prob is not None:
             sentence_with_prob = f"{sentence} <span style='background-color: yellow;'>{prob * 100:.2f}%</span>"
         else:
@@ -93,7 +87,6 @@ def get_response(user_query):
 attribution_module = load_attribution_module()
 generator = load_generator()
 hallucination_checker = load_hallucination_checker()
-
 
 # Initialize session state for chat history
 if 'chat_history' not in st.session_state:

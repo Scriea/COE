@@ -84,7 +84,7 @@ class AttributionModule:
 
 if __name__ == "__main__":
 
-    module = AttributionModule(device="cuda:7")    
+    module = AttributionModule(device="cuda:1")    
     passage_file = os.path.join(DATA_DIR,"passages.json")
     module.vectorize_paragraphs(passages_file=passage_file)
 

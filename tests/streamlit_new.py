@@ -1,16 +1,26 @@
 import os
 import subprocess
-import json
-import torch
-import spacy
-nlp = spacy.load("en_core_web_sm")
 import streamlit as st
-import numpy as np
-from src.attribution.attrb import AttributionModule
-from src.generator.generator import Generator
-from src.generator import prompts
-from src.hallucination.hallucination import HalluCheck, SelfCheckGPT
 import re
+import sys
+
+ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+sys.path.append(ROOT_DIR)
+
+from src.generator import prompts
+
+# Mock functions for testing without GPU
+class AttributionModule:
+    def retrieve_paragraphs(self, queries, search_index, paragraphs, k=1):
+        return [{'retrieved_paragraphs': ['Mocked relevant passage for testing.']}]
+
+class Generator:
+    def generate_response(self, input_text):
+        return "This is a test response. It has multiple sentences. Some of these might be hallucinations."
+
+class HalluCheck:
+    def hallucination_prop(self, response, context=None):
+        return [0.1, None, 0.5]  # Mocked probabilities for testing
 
 # Streamlit Configuration
 st.set_page_config(page_title="💬 Medical Agent")
@@ -23,33 +33,23 @@ with st.sidebar:
 ## General Configuration
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
-device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
-chat_model = "meta-llama/Llama-2-7b-chat-hf" 
-attribution_model = "meta-llama/Llama-2-7b-chat-hf" 
-# hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
-hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
+# Load the mocked modules
 @st.cache_resource
 def load_attribution_module():
-    return AttributionModule(device="cuda:4")
+    return AttributionModule()
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_path=chat_model, device="cuda:7")
+    return Generator()
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:4", method="MED", model_path=hallucination_model)
-
-# def split_sentences(text):
-#     # This function splits the text into sentences
-#     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
-#     return sentences
+    return HalluCheck()
 
 def split_sentences(text):
-    # Use SpaCy to split the text into sentences
-    doc = nlp(text)
-    sentences = [sent.text.strip() for sent in doc.sents]
+    # This function splits the text into sentences
+    sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
     return sentences
 
 def get_response(user_query):
@@ -61,7 +61,6 @@ def get_response(user_query):
     attribution_query = f"Question: {user_query}\nAnswer: {response}"
     # Retrieve relevant paragraphs - Attribution Module
     retrieval_results = attribution_module.retrieve_paragraphs([attribution_query], search_index, paragraphs, k=1)
-    print("\n\nRetrieval Results:\n\n",retrieval_results)
     retrieved_passages = retrieval_results[0]['retrieved_paragraphs'][0]
 
     # Check for hallucination
@@ -94,7 +93,6 @@ attribution_module = load_attribution_module()
 generator = load_generator()
 hallucination_checker = load_hallucination_checker()
 
-
 # Initialize session state for chat history
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = [{"role": "assistant", "content": "How may I assist you today?"}]
@@ -105,15 +103,19 @@ for message in st.session_state.chat_history:
         st.write(message["content"])
 
 ## Processing Document
-passages_file = os.path.join(ROOT_DIR, "data", "passages.json")
-passages = attribution_module.load_paragraphs(passages_file=passages_file)
-joint_passages = "\n".join(passages)
+joint_passages = """
+    ADVICE @ DISCHARGE :
+    1. Regular medications & STOP SMOKING.
+    2. Avoid Alcohol, Heavy exertion and lifting weights.
+    3. Diet - High fiber, low cholesterol, low sugar (no sugar if diabetic), fruits, vegetables (5 servings per day).
+    4. Exercise - Walk at least for 30 minutes daily. Avoid if Chest pain.
+    5. TARGETS * LDL<70mg/dl *BP - 120/80mmHg * Sugar Fasting - 100mg/dl Post Breakfast – 150mg/dl * BMI<25kg/m2.
+    6. IF CHEST PAIN – T.ANGISED 0.6 mg or T.SORBITRATE 5 mg keep under tongue. Repeat if no relief @ 5 minutes and report to nearest doctor for urgent ECG.
+"""
 
-embedding_file_path = os.path.join(attribution_module.output_dir, "paragraph_embeddings.npz")
-if not os.path.exists(embedding_file_path):
-    attribution_module.vectorize_paragraphs(passages_file, embedding_file_path)
-
-search_index, paragraphs = attribution_module.create_faiss_index(embedding_file_path=embedding_file_path, ngpu=1)
+# Mocking embeddings and search index for testing
+search_index = None
+paragraphs = None
 
 # Add a clear history button
 def clear_chat_history():

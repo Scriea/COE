@@ -44,7 +44,6 @@ def AutoAIS(queries, answers, passages, model_path=None, device=device, output_p
 
       inference = infer_autoais(example, hf_tokenizer, hf_model, device)
       autoais += inference == "Y"
-      example["AUTOAIS"] = inference
       result[queries[i]] = example
     
     if not output_path:
@@ -54,7 +53,6 @@ def AutoAIS(queries, answers, passages, model_path=None, device=device, output_p
     
     score = autoais / len(queries) 
     return score
-
 
 
 def format_example_for_autoais(example):
@@ -90,45 +88,6 @@ def infer_autoais(example, tokenizer, model, device=device):
   inference = "Y" if result == "1" else "N"
   example["autoais"] = inference
   return inference
-
-
-def score_predictions(predictions, nq_answers):
-  """Scores model predictions against AutoAIS and NQ answers.
-
-  Args:
-    predictions: A dict from questions to prediction rows.
-    nq_answers: A dict from questions to lists of NQ reference answers.
-    passages: A dict from identifiers from the attribution corpus to the
-      corresponding paragraphs.
-
-  Returns:
-    a dict of metric values, keyed by metric names
-  """
-  hf_tokenizer = T5Tokenizer.from_pretrained(AUTOAIS)
-  hf_model = T5ForConditionalGeneration.from_pretrained(AUTOAIS)
-
-  autoais = 0
-  target_answers = []
-  predicted_answers = []
-  for question, answers in nq_answers.items():
-    target_answers.append(answers)
-    example = predictions.get(question, None)
-    if example is None:
-      print("Did not find prediction for '%s'", question)
-      predicted_answers.append("")
-      continue
-    predicted_answers.append(example["answer"])
-    if not example["passage"]:
-      continue
-    inference = infer_autoais(example, hf_tokenizer, hf_model)
-    autoais += inference == "Y"
-
-  scores = {}
-  scores["AutoAIS"] = autoais / len(target_answers)
-
-#   for metric, score in squad(target_answers, predicted_answers).items():
-#     scores[f"SQuAD ({metric})"] = score
-  return scores
 
 
 if __name__ == "__main__":

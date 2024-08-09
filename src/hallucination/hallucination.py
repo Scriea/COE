@@ -3,7 +3,6 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 from typing import List
 
-
 import spacy
 import scispacy
 from scipy.stats import kstest
@@ -15,6 +14,7 @@ from transformers import (
         pipeline, 
         AutoModelWithLMHead
     )
+
 import torch
 import pickle
 from tqdm import tqdm
@@ -25,8 +25,28 @@ import random
 from datasets import load_dataset
 from utils import compute_f1, softmax, find_subset_indices, extract_text_between_double_quotes
 
+ALOE_8B = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
+BIO_MISTRAL_7B = "BioMistral/BioMistral-7B"
 
-class HalluCheck:
+class HallucinationDetection:
+    def __init__(self,):
+        pass
+    
+    def hallucination_prop(self):
+        """
+        Returns sentence level hallucination detection results
+
+        Input:
+            Text (str): Input text for hallucination detection
+            Other args might depend on the implementation
+        Output:
+            List of floats for each sentence in the input text
+
+        """
+        raise NotImplementedError
+    
+
+class HalluCheck(HallucinationDetection):
     def __init__(self, device=None, method="POS", model_path="HPAI-BSC/Llama3-Aloe-8B-Alpha"):
         self.method = method.upper()
         if self.method=="NER":
@@ -62,18 +82,28 @@ class HalluCheck:
     
 
     def hallucination_prop(self, text, context=""):
-        generated_question_answer_list = self.generate_questions_based_on_factual_parts(sentence=text)
-        print("\n\nGenerated Questions", generated_question_answer_list)
-        regenerated_answers, scores = self.generate_pinpointed_answers(generated_question_answer_list, context=context)
+        sent_nlp = spacy.load("en_core_web_sm")
+        sentences = [
+            sent.text.strip() for sent in sent_nlp(text).sents
+        ] 
+        print("Sentences:", sentences)
 
-        print("\n\nRegenerated Answers", regenerated_answers)
-        generated_questions = [generated_question_answer[0] for generated_question_answer in generated_question_answer_list]
-        initial_hallu = self.compare_orig_and_regenerated(generated_questions, text, regenerated_answers)
-        print("\n\nInitial Hallucination", initial_hallu)
-        final_hallu = self.check_with_probability(regenerated_answers, initial_hallu[2], scores, initial_hallu[0])
-        prob_hallu = sum(final_hallu)/len(final_hallu)
-        return prob_hallu
-    
+        hallucination_probs = []
+        for sentence in sentences:
+            generated_question_answer_list = self.generate_questions_based_on_factual_parts(sentence=sentence)
+            print("\n\nGenerated Questions", generated_question_answer_list)
+            regenerated_answers, scores = self.generate_pinpointed_answers(generated_question_answer_list, context=context)
+            print("\n\nRegenerated Answers", regenerated_answers)
+            generated_questions = [generated_question_answer[0] for generated_question_answer in generated_question_answer_list]
+            initial_hallu = self.compare_orig_and_regenerated(generated_questions, text, regenerated_answers)
+            print("\n\nInitial Hallucination", initial_hallu)
+            final_hallu = self.check_with_probability(regenerated_answers, initial_hallu[2], scores, initial_hallu[0])
+            if final_hallu == []:
+                prob_hallu = None
+            else:
+                prob_hallu = sum(final_hallu)/len(final_hallu)
+            hallucination_probs.append(prob_hallu)
+        return hallucination_probs
 
     def generate_questions_based_on_factual_parts(self, sentence:str)->List[List[str]]:
         """
@@ -168,6 +198,8 @@ class HalluCheck:
     def generate_pinpointed_answers(self, generated_question_answer_list, context):
         ## try with chat template
         # prompt = [f"{question_answer[0]}" for question_answer in generated_question_answer_list]
+        if generated_question_answer_list == []:
+            return [], []
         prompt = [f"<s>[INST]Background Information:{context} Question: {question_answer[0]}\n Answer with reasoning: [/INST]" for question_answer in generated_question_answer_list]
         tokenized_inputs = self.tokenizer.batch_encode_plus(prompt, return_tensors="pt", padding = "longest", return_attention_mask = True)
         tokenized_inputs = tokenized_inputs.to(self.device)
@@ -251,8 +283,173 @@ class HalluCheck:
         return not_match
     
 
+
+
+
+class SelfCheckGPT(HallucinationDetection):
+    """
+    SelfCheckGPT (LLM Prompt): Checking LLM's text against its own sampled texts via open-source LLM prompting
+    """
+    def __init__(
+        self,
+        model: str = None,
+        device = None
+    ):
+        model = model if model is not None else ALOE_8B
+        if device is None:
+            device = torch.device("cpu")
+        
+        self.device = device
+        self.tokenizer = AutoTokenizer.from_pretrained(model)
+        self.model = AutoModelForCausalLM.from_pretrained(model, torch_dtype="auto", device_map=device)
+        # self.model.to(device)
+        self.model.eval()
+
+        self.prompt_template = "Context: {context}\n\nSentence: {sentence}\n\nIs the sentence supported by the context above? Answer Yes or No.\n\nAnswer: "
+        self.text_mapping = {'yes': 0.0, 'no': 1.0, 'n/a': 0.5}
+        self.not_defined_text = set()
+        print(f"SelfCheck-LLMPrompt ({model}) initialized to device {device}")
+
+    def hallucination_prop(self, text:str, Passages):
+
+        nlp = spacy.load("en_core_web_sm")
+        sentences = [
+            sent.text.strip() for sent in nlp(text).sents
+        ]  # spacy sentence tokenization
+        print("Sentences:", sentences)
+        sent_scores = self.predict(
+            sentences=sentences,  # list of sentences
+            sampled_passages=Passages  ,  # list of sampled passages
+            verbose=True,  # whether to show a progress bar
+        )
+        return sent_scores
+     
+    def set_prompt_template(self, prompt_template: str):
+        self.prompt_template = prompt_template
+
+
+    @torch.no_grad()
+    def predict(
+        self,
+        sentences: List[str],
+        sampled_passages: List[str],
+        verbose: bool = False,
+    ):
+        """
+        This function takes sentences (to be evaluated) with sampled passages (evidence), and return sent-level scores
+        :param sentences: list[str] -- sentences to be evaluated, e.g. GPT text response spilt by spacy
+        :param sampled_passages: list[str] -- stochastically generated responses (without sentence splitting)
+        :param verson: bool -- if True tqdm progress bar will be shown
+        :param context: str -- context to be used in the prompt
+        :return sent_scores: sentence-level scores
+        """
+        num_sentences = len(sentences)
+        num_samples = len(sampled_passages)
+        scores = np.zeros((num_sentences, num_samples))
+        disable = not verbose
+        for sent_i in tqdm(range(num_sentences), disable=disable):
+            sentence = sentences[sent_i]
+            for sample_i, sample in enumerate(sampled_passages):
+                
+                # this seems to improve performance when using the simple prompt template
+                sample = sample.replace("\n", " ") 
+
+                prompt = self.prompt_template.format(context=sample, sentence=sentence)
+                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+                generate_ids = self.model.generate(
+                    inputs.input_ids,
+                    max_new_tokens=5,
+                    do_sample=False, # hf's default for Llama2 is True
+                )
+                output_text = self.tokenizer.batch_decode(
+                    generate_ids, skip_special_tokens=True, 
+                    clean_up_tokenization_spaces=False
+                )[0]
+                generate_text = output_text.replace(prompt, "")
+                score_ = self.text_postprocessing(generate_text)
+                scores[sent_i, sample_i] = score_
+        scores_per_sentence = scores.mean(axis=-1)
+        return scores_per_sentence
+
+    def text_postprocessing(
+        self,
+        text,
+    ):
+        """
+        To map from generated text to score
+        Yes -> 0.0
+        No  -> 1.0
+        everything else -> 0.5
+        """
+        text = text.lower().strip()
+        if text[:3] == 'yes':
+            text = 'yes'
+        elif text[:2] == 'no':
+            text = 'no'
+        else:
+            if text not in self.not_defined_text:
+                print(f"warning: {text} not defined")
+                self.not_defined_text.add(text)
+            text = 'n/a'
+        return self.text_mapping[text]
+
+
 if __name__=="__main__":
     ## Example Usage
-    HC = HalluCheck(device="cuda:7", method= "POS" )
-    hallucination_prop = HC.hallucination_prop("The capital of France is Mumbai.")
-    print("Probability of Hallucination : ", hallucination_prop)
+    device="cuda:1"
+    # HC = HalluCheck(device="cuda:2", method= "POS" )
+    # hallucination_prop = HC.hallucination_prop("The capital of France is Mumbai.")
+    # print("Probability of Hallucination : ", hallucination_prop)
+    
+    tokenizer = AutoTokenizer.from_pretrained(
+        "meta-llama/Meta-Llama-3-8B-Instruct" ,
+        # padding = True
+        )
+    tokenizer.pad_token = tokenizer.eos_token
+    model = AutoModelForCausalLM.from_pretrained(
+            "meta-llama/Meta-Llama-3-8B-Instruct" , 
+            trust_remote_code=True, 
+            output_attentions=True, 
+            device_map=device
+        )
+
+    model.to(device)
+
+    query = "What is the captial of France?"
+    prompt = f"<s>[INST] Question: {query}\n Answer with reasoning: [/INST]"
+    tokenized_inputs = tokenizer.batch_encode_plus(
+        [prompt]*20,
+        return_tensors="pt", 
+        padding = "longest", 
+        return_attention_mask = True
+        )
+    tokenized_inputs = tokenized_inputs.to(device)
+    N=tokenized_inputs['input_ids'].shape[1]
+
+    outputs = model.generate(
+        **tokenized_inputs, 
+        return_dict_in_generate=True, 
+        output_scores=True, 
+        max_new_tokens = 64, 
+        # early_stopping=True,
+        # num_beams=8,
+        do_sample=True,
+        temperature=0.9,
+        )
+    
+    predicted_token_ids = outputs['sequences']
+    answers = tokenizer.batch_decode(predicted_token_ids[:, N:], skip_special_tokens=True)
+    text = """
+        The capital of France is Paris.
+        The capital of France is Mumbai.
+    """
+    SC = SelfCheckGPT(device="cuda:2")
+    text = """
+    Paris (French pronunciation: [paʁi] ⓘ) is the capital and largest city of France. 
+    With an official estimated population of 2,102,650 residents in January 2023[2] in an area of more than 105 km2 (41 sq mi),[5] Paris is the fourth-largest city in the European Union and the 30th most densely populated city in the world in 2022.
+    Since the 17th century, Paris has been one of the world's major centres of finance, diplomacy, commerce, culture, fashion, and gastronomy.
+    For its leading role in the arts and sciences, as well as its early and extensive system of street lighting, in the 19th century, it became known as the City of Light.[7]
+    The capital of France is Mumbai. The capital of France is Delhi. The capital of France is Paris
+    """
+    hallucination_prop = SC.hallucination_prop(text=text, Passages=answers, context="")
+    print(hallucination_prop)

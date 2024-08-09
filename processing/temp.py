@@ -2,11 +2,11 @@ import os
 import sys
 import json
 import torch
+import spacy
+nlp = spacy.load("en_core_web_sm")
 import argparse
 import numpy as np
 import subprocess
-# from huggingface_hub import login
-# login()
 
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
 sys.path.append(ROOT_DIR)
@@ -16,41 +16,32 @@ from src.generator.generator import Generator
 from src.generator import prompts
 from src.hallucination.hallucination import HalluCheck
 
-
 ## General Configuration
-CHECPOINT_FILE = os.path.join(ROOT_DIR, "run", "checkpoint.json")
-os.makedirs(os.path.dirname(CHECPOINT_FILE), exist_ok=True) 
+CHECKPOINT_FILE = os.path.join(ROOT_DIR, "run", "checkpoint.json")
+os.makedirs(os.path.dirname(CHECKPOINT_FILE), exist_ok=True) 
 
 EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
-device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
-chat_model = "google/gemma-2-9b" 
-# chat_model = "medalpaca/medalpaca-7b"
-# chat_model = "meta-llama/Meta-Llama-3-8B"
-# hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
-# hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
-hallucination_model = "BioMistral/BioMistral-7B"
-
+device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
+chat_model = "medalpaca/medalpaca-7b" 
+hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 ## Utility Functions
 def save_checkpoint(data, checkpoint_file):
     with open(checkpoint_file, "w") as f:
         json.dump(data, f, indent=4)
 
-
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run inference on a set of questions")
-    parser.add_argument("-d","--data", type=str, help="Path to test data in .json.", default=os.path.join(ROOT_DIR, "data", "test_data.json"))
-    parser.add_argument("-m", "--model", type=str, help="Path to the model to use.", default="meta-llama/Llama-2-7b-chat-hf")
-    parser.add_argument("-o","--output", type=str, help="Path to output file.", default=os.path.join(ROOT_DIR, "run", "output.json"))
+    parser.add_argument("-d", "--data", type=str, help="Path to test data in .json.", default=os.path.join(ROOT_DIR, "data", "test_data.json"))
+    parser.add_argument("-o", "--output", type=str, help="Path to output file.", default=os.path.join(ROOT_DIR, "run", "output.json"))
 
     args = parser.parse_args()
-    chat_model = args.model
 
     ## Load Modules
     attribution_module = AttributionModule(device="cuda:3")
     generator = Generator(model_path=chat_model, device="cuda:3")
-    hallucination_checker = HalluCheck(device="cuda:1", method="POS", model_path=hallucination_model)
+    hallucination_checker = HalluCheck(device="cuda:3", method="POS", model_path=hallucination_model)
     
     ## Processing Document
     passages_file = os.path.join(ROOT_DIR, "data", "passages.json")
@@ -74,19 +65,30 @@ if __name__ == "__main__":
         retrieval_results = attribution_module.retrieve_paragraphs([attribution_query], search_index, paragraphs, k=1)
         retrieved_passages = retrieval_results[0]['retrieved_paragraphs'][0]
 
-        
         # Check for hallucination
-        hallucination_probability = hallucination_checker.hallucination_prop(answer, context="joint_passages")
+        hallucination_probabilities = hallucination_checker.hallucination_prop(answer, context="joint_passages")
+
+        # Format hallucination probabilities for logging
+        formatted_hallucination_probabilities = [
+            {"sentence": sent, "probability": prob if prob is not None else "Null"}
+            for sent, prob in zip(split_sentences(answer), hallucination_probabilities)
+        ]
 
         # Compile the response message
         response = {
             "question": query,
             "answer": answer,
             "attribution": retrieved_passages,
-            "hallucination": hallucination_probability
+            "hallucination": formatted_hallucination_probabilities
         }
         return response
     
+    def split_sentences(text):
+        # Use SpaCy to split the text into sentences
+        doc = nlp(text)
+        sentences = [sent.text.strip() for sent in doc.sents]
+        return sentences
+
     if not os.path.exists(args.data):
         raise FileNotFoundError(f"File not found: {args.data}")
     

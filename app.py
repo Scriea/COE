@@ -31,15 +31,15 @@ hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 @st.cache_resource
 def load_attribution_module():
-    return AttributionModule(device="cuda:4")
+    return AttributionModule(device="cuda:1")
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_path=chat_model, device="cuda:7")
+    return Generator(model_path=chat_model, device="cuda:1")
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:4", method="MED", model_path=hallucination_model)
+    return HalluCheck(device="cuda:3", method="MED", model_path=hallucination_model)
 
 # def split_sentences(text):
 #     # This function splits the text into sentences

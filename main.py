@@ -5,6 +5,7 @@ import os
 import subprocess
 import torch
 import spacy
+from functools import lru_cache
 from src.attribution.attrb import AttributionModule
 from src.generator.generator import Generator
 from src.generator import prompts
@@ -17,22 +18,30 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Load NLP model for sentence splitting
-nlp = spacy.load("en_core_web_sm")
+@lru_cache(maxsize=1)
+def load_spacy_model():
+    return spacy.load("en_core_web_sm")
+
+@lru_cache(maxsize=1)
+def load_attribution_module():
+    return AttributionModule(device="cuda:1")
+
+@lru_cache(maxsize=1)
+def load_generator():
+    return Generator(model_path="meta-llama/Llama-2-7b-chat-hf", device="cuda:1")
+
+@lru_cache(maxsize=1)
+def load_hallucination_checker():
+    return HalluCheck(device="cuda:3", method="MED", model_path="HPAI-BSC/Llama3-Aloe-8B-Alpha")
+
+# Initialize models
+nlp = load_spacy_model()
+attribution_module = load_attribution_module()
+generator = load_generator()
+hallucination_checker = load_hallucination_checker()
 
 # General Configuration
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
-chat_model = "meta-llama/Llama-2-7b-chat-hf"
-attribution_model = "meta-llama/Llama-2-7b-chat-hf"
-hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
-
-# Load the required modules
-attribution_module = AttributionModule(device="cuda:2")
-generator = Generator(model_path=chat_model, device="cuda:2")
-hallucination_checker = HalluCheck(device="cuda:5", method="MED", model_path=hallucination_model)
-
-# Load passages
 passages_file = os.path.join(ROOT_DIR, "data", "passages.json")
 passages = attribution_module.load_paragraphs(passages_file=passages_file)
 joint_passages = "\n".join(passages)
@@ -114,14 +123,14 @@ def get_response(user_query):
 
     hallucination_probabilities = hallucination_checker.hallucination_prop(response, context="joint_passages")
 
+    # Replace None values in hallucination_probabilities with a default float value, such as 0.0
+    hallucination_probabilities = [prob if prob is not None else -1.0 for prob in hallucination_probabilities]
+
     sentences = split_sentences(response)
 
     response_with_hallucination = []
     for sentence, prob in zip(sentences, hallucination_probabilities):
-        if prob is not None:
-            sentence_with_prob = f"{sentence} <span style='background-color: yellow;'>{prob * 100:.2f}%</span>"
-        else:
-            sentence_with_prob = sentence
+        sentence_with_prob = f"{sentence} <span style='background-color: yellow;'>{prob * 100:.2f}%</span>"
         response_with_hallucination.append(sentence_with_prob)
 
     response_with_hallucination_text = " ".join(response_with_hallucination)
@@ -151,15 +160,11 @@ def chat(request: QueryRequest):
 # Clear chat history endpoint
 @app.post("/clear", summary="Clear the chat history", response_model=ClearHistoryResponse)
 def clear_chat_history():
-    # Here, you would clear the chat history from wherever it's stored (e.g., a database)
-    # For now, we'll return a mock response
     return {"message": "Chat history cleared"}
 
 # Get chat history endpoint
 @app.post("/history", summary="Get chat history", response_model=ChatHistory)
 def get_chat_history():
-    # Here, you would retrieve the chat history from storage (e.g., a database)
-    # For now, we'll return a mock chat history
     chat_history = [
         {"role": "assistant", "content": "How may I assist you today?"},
         {"role": "user", "content": "What is hypertension?"},

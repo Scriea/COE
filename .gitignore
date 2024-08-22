@@ -3,6 +3,9 @@ temp/
 *.npz
 /temp.py
 run/
+runs/
+src/ocr/runs/
+frist_page.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

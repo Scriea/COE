@@ -9,3 +9,7 @@ scikit-learn
 stanza
 spacy
 pandas
+opencv-python
+pdf2image
+PyMuPDF
+tqdm

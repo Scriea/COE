@@ -25,10 +25,12 @@ CHECPOINT_FILE = os.path.join(ROOT_DIR, "run", "checkpoint.json")
 os.makedirs(os.path.dirname(CHECPOINT_FILE), exist_ok=True)
 
 EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
-device = torch.device("cuda:4" if torch.cuda.is_available() else "cpu")
-chat_model = "google/gemma-2-9b"
+device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+# chat_model = "google/gemma-2-9b"
 # chat_model = "medalpaca/medalpaca-7b"
 # chat_model = "meta-llama/Meta-Llama-3-8B"
+# chat_model = "google/gemma-7b"
+chat_model = "meta-llama/Meta-Llama-3.1-8B-Instruct"
 # hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
 # hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 hallucination_model = "BioMistral/BioMistral-7B"
@@ -66,11 +68,11 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    chat_model = args.model
+    # chat_model = args.model
 
     # Load Modules
-    attribution_module = AttributionModule(device="cuda:4")
-    generator = Generator(model_path=chat_model, device="cuda:4")
+    attribution_module = AttributionModule(device="cuda:2")
+    generator = Generator(model_path=chat_model, device="cuda:2")
     hallucination_checker = HalluCheck(
         device="cuda:4", method="POS", model_path=hallucination_model
     )
@@ -95,16 +97,18 @@ if __name__ == "__main__":
         prompt = prompts.medical_prompt.format(joint_passages, query)
         prompt_fs = prompts.medical_prompt_fs.format(joint_passages, query)
         answer = generator.generate_response(prompt)
-        answer_rag = generator.vector_compare(prompt, joint_passages)
+        answer_rag1 = generator.vector_compare(prompt, joint_passages)
         answer_fs = generator.generate_response(prompt_fs)
-
+        answer_rag = answer_rag1.response
         # Attribution
-        attribution_query = f"Question: {query}\nAnswer: {answer}"
-        # Retrieve relevant paragraphs
-        retrieval_results = attribution_module.retrieve_paragraphs(
-            [attribution_query], search_index, paragraphs, k=1
-        )
-        retrieved_passages = retrieval_results[0]["retrieved_paragraphs"][0]
+        attrb = {answer: "", answer_rag: "", answer_fs: ""}
+        for _ in attrb.keys():
+            attribution_query = f"Question: {query}\nAnswer: {_}"
+            retrieval_results = attribution_module.retrieve_paragraphs(
+                [attribution_query], search_index, paragraphs, k=1
+            )
+            retrieved_passages = retrieval_results[0]["retrieved_paragraphs"][0]
+            attrb[_] = retrieved_passages
         # Check for hallucination
         hallucination_probability = hallucination_checker.hallucination_prop(
             answer, context="joint_passages"
@@ -113,9 +117,11 @@ if __name__ == "__main__":
         response = {
             "question": query,
             "answer": answer,
-            "answer_rag": answer_rag.response,
+            "answer_rag": answer_rag,
             "answer_fs": answer_fs,
-            "attribution": retrieved_passages,
+            "attribution": attrb[answer],
+            "attribution_rag": attrb[answer_rag],
+            "attribution_fs": attrb[answer_fs],
             "hallucination": hallucination_probability,
         }
         return response

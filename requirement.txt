@@ -13,3 +13,4 @@ opencv-python
 pdf2image
 PyMuPDF
 tqdm
+python-multipart

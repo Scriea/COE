@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from typing import List, Optional
 import os
@@ -10,6 +10,9 @@ from src.attribution.attrb import AttributionModule
 from src.generator.generator import Generator
 from src.generator import prompts
 from src.hallucination.hallucination import HalluCheck
+from src.ocr import DocumentReader 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # or "true"
+
 
 # Initialize FastAPI
 app = FastAPI(
@@ -24,15 +27,15 @@ def load_spacy_model():
 
 @lru_cache(maxsize=1)
 def load_attribution_module():
-    return AttributionModule(device="cuda:1")
+    return AttributionModule(device="cuda:5")
 
 @lru_cache(maxsize=1)
 def load_generator():
-    return Generator(model_path="meta-llama/Llama-2-7b-chat-hf", device="cuda:1")
+    return Generator(model_path="meta-llama/Llama-2-7b-chat-hf", device="cuda:6")
 
 @lru_cache(maxsize=1)
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:3", method="MED", model_path="HPAI-BSC/Llama3-Aloe-8B-Alpha")
+    return HalluCheck(device="cuda:7", method="MED", model_path="HPAI-BSC/Llama3-Aloe-8B-Alpha")
 
 # Initialize models
 nlp = load_spacy_model()
@@ -171,6 +174,25 @@ def get_chat_history():
         {"role": "assistant", "content": "Hypertension, also known as high blood pressure, is a condition..."}
     ]
     return {"chat_history": chat_history}
+
+
+## Document Reader API
+@app.post("/upload-pdf", summary="Upload a PDF to extract")
+async def upload_pdf(file: UploadFile = File(...)):
+    try:
+        # Save the uploaded file to a temporary location
+        temp_file_path = f"/tmp/{file.filename}"
+        with open(temp_file_path, "wb") as f:
+            f.write(await file.read())
+        reader = DocumentReader()
+        passages = reader.extract_passages(temp_file_path)
+                # Return a response without updating the global passages
+        return {
+            "message": "Passages extracted successfully.", 
+            "num_passages": len(passages), "passages": passages
+            }  # Return only the first 3 passages for brevity
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

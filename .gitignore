@@ -7,6 +7,8 @@ runs/
 src/ocr/runs/
 frist_page.png
 
+data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

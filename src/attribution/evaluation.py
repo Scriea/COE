@@ -1,4 +1,5 @@
 import os
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 import re
 import json
 import torch
@@ -9,7 +10,7 @@ from transformers import T5ForConditionalGeneration, T5Tokenizer
 AUTOAIS = "google/t5_xxl_true_nli_mixture"
 device="cuda" if torch.cuda.is_available() else "cpu"
 
-def AutoAIS(queries, answers, passages, model_path=None, device=device, output_path=None):
+def AutoAIS(queries, answers, passages, model_path=None, device=device, output_path=None, device_map="auto"):
     """
     Calculate the AutoAIS score for the given text and attribution.
 
@@ -28,10 +29,10 @@ def AutoAIS(queries, answers, passages, model_path=None, device=device, output_p
 
     if not model_path:
       hf_tokenizer = T5Tokenizer.from_pretrained(AUTOAIS)
-      hf_model = T5ForConditionalGeneration.from_pretrained(AUTOAIS, device_map=device)
+      hf_model = T5ForConditionalGeneration.from_pretrained(AUTOAIS, device_map=device_map)
     else:
       hf_tokenizer = T5Tokenizer.from_pretrained(model_path)
-      hf_model = T5ForConditionalGeneration.from_pretrained(model_path, device_map=device)
+      hf_model = T5ForConditionalGeneration.from_pretrained(model_path, device_map=device_map)
 
     ### Check if the input is a list of queries, texts and attributions
     assert len(queries) == len(answers) == len(passages)
@@ -83,10 +84,16 @@ def infer_autoais(example, tokenizer, model, device=device):
   """
   input_text = format_example_for_autoais(example)
   input_ids = tokenizer(input_text, return_tensors="pt").input_ids.to(device)
-  outputs = model.generate(input_ids)
+  model.eval()
+  with torch.no_grad():
+    outputs = model.generate(input_ids)
   result = tokenizer.decode(outputs[0], skip_special_tokens=True)
   inference = "Y" if result == "1" else "N"
   example["autoais"] = inference
+
+  if torch.cuda.is_available():
+    del input_ids, outputs
+    torch.cuda.empty_cache()
   return inference
 
 

@@ -1,91 +1,22 @@
-[
-    {
-        "PATIENT_1" : {
-            "ER" : [
-                {
-                    "DOCUMENT_ID": 1,
-                    "PASSAGES" : [
-                        "Patient Name : xxxxxxxxxx xxxxxxxxxx        Proc. Date : 24/03/2023 15:00\n        Age/Gender : 80 Yrs /M      Procedure No : xxxxxxxxxx\n        Hosp No : J-476013      CathLab : EMS Philips\n        Unit : Cardio 1     Location Status : MEDICINE-II/EMS (M) 4102/GENERAL/11\n        Status : IPD        MRD No :: 2023016932\n        Category : Free     Inter. Attending : DR. SRIDHAR B\n        Referred By : --        Second Attending : DR. CHINMAY PARALE GURUNATH\n        Admission Date & Time : 17/03/2023 21:47        Discharge Date & Time : 27/03/2023 21:38   \n        Cardiology Adm Date & Time :        HCP Regn. Date & Time : 27/03/2023 11:55\n        HCP Completion Date & Time : 24/03/2023 15:08       Mobile No. : 9952617904",
-                        "HISTORY : \nChief Complaint : CHEST PAIN FOR 12 HOURS",
-                        "RISK FACTORS : \n  Hypertension, Diabetes",
-                        "Physical Exam :\n        Height : 160 (cms)\n        Pulse Rate : 78 (/min)\n        Cardiac Enlargement : No\n        Weight : 64 (kgs)\n        BMI : 25 (Kg/m2)\n        BP-Systolic/Diastolic: 110/70 (mmHg)\n        JVP : Normal\n        Pallor : No\n        S1 : Normal\n        Edema : No\n        S2 : Normal\n        Other Sounds and Murmurs : No additional Sounds\n        Chest : B/L NVBS",
-                        "Lab Findings :\n        22/03/2023\n\n        HIV negative\n        HepatitisB negative\n        HCV negative\n        \n        22/03/2023\n        \n        Hb = 14.6 (gm/dl)\n        Platelet Count = 239000 (/cu.mm)\n        BU = 27 (mg/dl)\n        Creatinine = 0.72 (mg/dl)\n        22/03/2023\n        Blood Glucose : RBS = 140 (mg/dl)",
-                        "ECG :\n            22/03/2023\n            SR\n            STE IN INFERIOR LEADS(OUTSIDE ECG)\n            AT JIPMER, SR AT 80/MIN\n            QS COMPLEXES IN III AND aVF",
-                        "Echocardiography: \n            22/03/2023\n            No regional wall motion abnormality, LVEF = 60 (%)",
-                        "Other Doppler Study : \n GRADE 1 DD",
-                        "ADMISSION DIAGNOSIS :\n    Others, HTN/DM/STEMI IWMI-LYSED/ ADEQUATE LV FUNCTION/RECURRENT REST ANGINA",
-                        "PROCEDURES DETAILS :\n        Procedures Done :\n        Procedure Date\n        (Detailed Procedure report is attached)\n        Coronary Angiography, Coronary Intervention\n        : 24/03/2023\n        Procedure Number : xxxxxxxxxx.\n        Consultant :\n        Diagnostic Attending : DR. SRIDHAR B\n        DR. SHAHID H SHALI\n        Resident Cathlab : DR. CHINMAY PARALE GURUNATH",
-                        "RESULT :\n        Intervention : 1. Successful Intervention of RCA - Proximal (Drug Eluting stent)\n        Coronary Anatomy : One Vessel CAD",
-                        "IN HOSPITAL COURSE :   \n  Uneventful",
-                        "FINAL DIAGNOSIS: \n    Diagnosis : Acute transmural myocardial infarction of inferior wall (I21.1)",
-                        "CONDITION AT DISCHARGE : \n Hemodynamically stable and asymptomatic",
-                        "ADVICE @ DISCHARGE :\n        1. Regular medications & STOP SMOKING.\n        2. Avoid Alcohol, Heavy exertion and lifting weights.\n        3. Diet - High fiber, low cholesterol, low sugar (no sugar if diabetic), fruits, vegetables (5 servings\n        per day).\n        4. Exercise - Walk at least for 30 minutes daily. Avoid if Chest pain.\n        5. TARGETS * LDL<70mg/dl *BP - 120/80mmHg * Sugar Fasting - 100mg/dl Post Breakfast \u2013 150mg/dl\n        * BMI<25kg/m2.\n        6. IF CHEST PAIN \u2013 T.ANGISED 0.6 mg or T.SORBITRATE 5 mg keep under tongue. Repeat if no relief\n        @ 5 minutes and report to nearest doctor for urgent ECG.\n        For emergency please contact 0413-2296574 or +91 7867086319",
-                        "DIET ADVICE :\n        1. 1500 Calories(KCal) 2. Salt Restricted 3. Periodic monitoring of Blood Pressure 4.\n        Anti-Hypertensives to be readjusted at the advice of Diabetologist/Physician 5. Diabetic Diet 6.\n        Periodic monitoring of Blood Suger 7. Anti-Diabetics to be readjusted at the advice of\n        Diabetologist/Physician",
-                        "DISCHARGE MEDICATIONS:\n        1. CAP/TAB DEPLATT A (75/75) MG (Route: ORAL; Frequency: 0-1-0-0)\n        2. CAP/TAB ATORVAS 40 MG (Route: ORAL; Frequency: 0-0-0-1)\n        3. CAP/TAB ENVAS 2.5 MG (Route: ORAL; Frequency: 1-0-0-1)\n        4. CAP/TAB PROLOMET XL 25 MG (Route: ORAL; Frequency: 1-0-0-0)\n        5. CAP/TAB MF 500 MG (Route: ORAL; Frequency: 1-1-1)\n        6. CAP/TAB GLIMEPRIDE 2 MG (Route: ORAL; Frequency: 1-0-0-0)\n        7. CAP/TAB OMEZ 20 MG (Route: ORAL; Frequency: 1-0-0-1)\n        8. CAP/TAB SORBITRATE 5 MG S/L SOS (Route: ORAL; Frequency: SOS)\n        Medicines to be continued unless stopped or modified by Doctor.",
-                        "FOLLOW-UP :\n        Cardio OPD 184 @ 9:00 AM Apr-2023. At super speciality block after ------ weeks.TO FOLLOW UP IN\n        CARDIO OPD AFTER 4 WEEKS ON THURSDAY WITH AC/PC/RFT/LFT/ECG/2D ECHO/USG ABDOMEN/USG KUB/USG"
-                    ]
-                }
+{
+    "Discharge_Summary" : [ "Patient Name : xxxxxxxxxx xxxxxxxxxx        Proc. Date : 24/03/2023 15:00\n        Age/Gender : 80 Yrs /M      Procedure No : xxxxxxxxxx\n        Hosp No : J-476013      CathLab : EMS Philips\n        Unit : Cardio 1     Location Status : MEDICINE-II/EMS (M) 4102/GENERAL/11\n        Status : IPD        MRD No :: 2023016932\n        Category : Free     Inter. Attending : DR. SRIDHAR B\n        Referred By : --        Second Attending : DR. CHINMAY PARALE GURUNATH\n        Admission Date & Time : 17/03/2023 21:47        Discharge Date & Time : 27/03/2023 21:38   \n        Cardiology Adm Date & Time :        HCP Regn. Date & Time : 27/03/2023 11:55\n        HCP Completion Date & Time : 24/03/2023 15:08       Mobile No. : 9952617904",
+                "HISTORY : \nChief Complaint : CHEST PAIN FOR 12 HOURS",
+                "RISK FACTORS : \n  Hypertension, Diabetes",
+                "Physical Exam :\n        Height : 160 (cms)\n        Pulse Rate : 78 (/min)\n        Cardiac Enlargement : No\n        Weight : 64 (kgs)\n        BMI : 25 (Kg/m2)\n        BP-Systolic/Diastolic: 110/70 (mmHg)\n        JVP : Normal\n        Pallor : No\n        S1 : Normal\n        Edema : No\n        S2 : Normal\n        Other Sounds and Murmurs : No additional Sounds\n        Chest : B/L NVBS",
+                "Lab Findings :\n        22/03/2023\n\n        HIV negative\n        HepatitisB negative\n        HCV negative\n        \n        22/03/2023\n        \n        Hb = 14.6 (gm/dl)\n        Platelet Count = 239000 (/cu.mm)\n        BU = 27 (mg/dl)\n        Creatinine = 0.72 (mg/dl)\n        22/03/2023\n        Blood Glucose : RBS = 140 (mg/dl)",
+                "ECG :\n            22/03/2023\n            SR\n            STE IN INFERIOR LEADS(OUTSIDE ECG)\n            AT JIPMER, SR AT 80/MIN\n            QS COMPLEXES IN III AND aVF",
+                "Echocardiography: \n            22/03/2023\n            No regional wall motion abnormality, LVEF = 60 (%)",
+                "Other Doppler Study : \n GRADE 1 DD",
+                "ADMISSION DIAGNOSIS :\n    Others, HTN/DM/STEMI IWMI-LYSED/ ADEQUATE LV FUNCTION/RECURRENT REST ANGINA",
+                "PROCEDURES DETAILS :\n        Procedures Done :\n        Procedure Date\n        (Detailed Procedure report is attached)\n        Coronary Angiography, Coronary Intervention\n        : 24/03/2023\n        Procedure Number : xxxxxxxxxx.\n        Consultant :\n        Diagnostic Attending : DR. SRIDHAR B\n        DR. SHAHID H SHALI\n        Resident Cathlab : DR. CHINMAY PARALE GURUNATH",
+                "RESULT :\n        Intervention : 1. Successful Intervention of RCA - Proximal (Drug Eluting stent)\n        Coronary Anatomy : One Vessel CAD",
+                "IN HOSPITAL COURSE :   \n  Uneventful",
+                "FINAL DIAGNOSIS: \n    Diagnosis : Acute transmural myocardial infarction of inferior wall (I21.1)",
+                "CONDITION AT DISCHARGE : \n Hemodynamically stable and asymptomatic",
+                "ADVICE @ DISCHARGE :\n        1. Regular medications & STOP SMOKING.\n        2. Avoid Alcohol, Heavy exertion and lifting weights.\n        3. Diet - High fiber, low cholesterol, low sugar (no sugar if diabetic), fruits, vegetables (5 servings\n        per day).\n        4. Exercise - Walk at least for 30 minutes daily. Avoid if Chest pain.\n        5. TARGETS * LDL<70mg/dl *BP - 120/80mmHg * Sugar Fasting - 100mg/dl Post Breakfast \u2013 150mg/dl\n        * BMI<25kg/m2.\n        6. IF CHEST PAIN \u2013 T.ANGISED 0.6 mg or T.SORBITRATE 5 mg keep under tongue. Repeat if no relief\n        @ 5 minutes and report to nearest doctor for urgent ECG.\n        For emergency please contact 0413-2296574 or +91 7867086319",
+                "DIET ADVICE :\n        1. 1500 Calories(KCal) 2. Salt Restricted 3. Periodic monitoring of Blood Pressure 4.\n        Anti-Hypertensives to be readjusted at the advice of Diabetologist/Physician 5. Diabetic Diet 6.\n        Periodic monitoring of Blood Suger 7. Anti-Diabetics to be readjusted at the advice of\n        Diabetologist/Physician",
+                "DISCHARGE MEDICATIONS:\n        1. CAP/TAB DEPLATT A (75/75) MG (Route: ORAL; Frequency: 0-1-0-0)\n        2. CAP/TAB ATORVAS 40 MG (Route: ORAL; Frequency: 0-0-0-1)\n        3. CAP/TAB ENVAS 2.5 MG (Route: ORAL; Frequency: 1-0-0-1)\n        4. CAP/TAB PROLOMET XL 25 MG (Route: ORAL; Frequency: 1-0-0-0)\n        5. CAP/TAB MF 500 MG (Route: ORAL; Frequency: 1-1-1)\n        6. CAP/TAB GLIMEPRIDE 2 MG (Route: ORAL; Frequency: 1-0-0-0)\n        7. CAP/TAB OMEZ 20 MG (Route: ORAL; Frequency: 1-0-0-1)\n        8. CAP/TAB SORBITRATE 5 MG S/L SOS (Route: ORAL; Frequency: SOS)\n        Medicines to be continued unless stopped or modified by Doctor.",
+                "FOLLOW-UP :\n        Cardio OPD 184 @ 9:00 AM Apr-2023. At super speciality block after ------ weeks.TO FOLLOW UP IN\n        CARDIO OPD AFTER 4 WEEKS ON THURSDAY WITH AC/PC/RFT/LFT/ECG/2D ECHO/USG ABDOMEN/USG KUB/USG"
             ]
-        
-        }
-    },
-    {
-        "PATIENT_2" : {
-            "ER" : [
-                {
-                    "DOCUMENT_ID": 1,
-                    "PASSAGES" : [
-                        "Patient Name :  xxxxxxxxxx xxxxxxxxxx       Proc. Date : 05/03/2024 14:00\n        Age/Gender  : 40 Yrs /M     Procedure No : xxxxxxxxxx,,,,\n        Hosp No : J-661976      CathLab : SSB Siemens\n        Unit : Cardio 1         Location: CARDIOLOGY/CARDIOLOGY WARD 5222/GENERAL BEDS/0\n        Status : IPD        MRD No : 2024013669\n        Category : AB-PMJAY     Inter. Attending : DR. AVINASH A\n        Referred By : --        Second Attending : DR. SIVAVIGNESH K E\n        Admission Date & Time : 04/03/2024 11:37        Discharge Date & Time : 06/03/2024 00:02\n        Cardiology Adm Date & Time :        HCP Completion Date & Time : 06/03/2024 10:27\n        HCP Regn. Date & Time : 05/03/2024 20:55        Mobile No. : 7904216729",
-                        "HISTORY  \nChief Complaint CAD ACSNSTEMI \nSVD OF LCX",
-                        "RISK FACTORS\nEx Smoker",
-                        "Physical Exam :\n        Height : 160 (cms)\n        Pulse Rate : 80 (/min)\n        Cardiac Enlargement : No\n        Pallor : No\n        Weight : 50 (kgs)\n        BMI : 19.53 (Kg/m2)\n        BP-Systolic/Diastolic: 120/80 (mmHg)\n        JVP : Normal\n        Edema : No\n        S1 : Normal\n        S2 : Normal\n        Chest : NVBS",
-                        "Lab Findings :\n        28/02/2024\n        HIV negative\n        HepatitisB negative\n        HCV negative\n\n        28/02/2024\n        Hb = 14.8 (gm/dl)\n        Platelet Count = 444000 (/cu.mm)\n        BU = 23 (mg/dl)\n        Creatinine = 0.8 (mg/dl)\n\n        04/03/2024\n        Blood Glucose : RBS = 100 (mg/dl)",
-                        "ECG :\n        28/02/2024\n        NSR AT 80 BPM\n        TWI IN LEAD II , III, V5-V6",
-                        "Echocardiography :     \n 28/02/2024    \n No regional wall motion abnormality, LVEF = 60 (%)",
-                        "PREV. INTERVENTION : \n ANGIOGRAPHY : 28/2/24\nLM : NORMAL\n      LAD PROX : 30-50 %\n     LCX DISTAL : 60-70 % , OM1 TOTAL OCCLUSION\n     RCA : NORMAL\n     RCA : NORMAL",
-                        "ADMISSION DIAGNOSIS :\n        Others, CAD/ ACS-NSTEMI/ SVD OF LCX",
-                        "PROCEDURES DETAILS :\n        Procedures Done Intervention : Coronary\n        Procedure Date : 05/03/2024\n        Procedure Number :  xxxxxxxxxx,,,,\n        Consultant : DR. AVINASH A\n        Diagnostic Attending :  DR. GULBADIN MUFTI\n        Resident Cathlab : DR. SIVAVIGNESH K E",
-                        "RESULT :\n            Intervention\n            1. Successful Intervention of LCx - OM1 Ostial (Drug Eluting stent)\n            2. Successful Intervention of LCx - LPDA (Drug Eluting stent)",
-                        "IN HOSPITAL COURSE :\n         Uneventful",
-                        "FINAL DIAGNOSIS \n         Diagnosis : Old myocardial infarction (I25.2)",
-                        "CONDITION AT DISCHARGE : \n    Hemodynamically stable and asymptomatic",
-                        "ADVICE @ DISCHARGE :\n            1. Regular medications & STOP SMOKING.\n            2. Avoid Alcohol, Heavy exertion and lifting weights.\n            3. Diet - High fiber, low cholesterol, low sugar (no sugar if diabetic), fruits, vegetables (5 servings\n            per day).\n            4. Exercise - Walk at least for 30 minutes daily. Avoid if Chest pain.\n            5. TARGETS * LDL<70mg/dl *BP - 120/80mmHg * Sugar Fasting - 100mg/dl Post Breakfast \u2013 150mg/dl\n            * BMI<25kg/m2.\n            6. IF CHEST PAIN \u2013 T.ANGISED 0.6 mg or T.SORBITRATE 5 mg keep under tongue. Repeat if no relief\n            @ 5 minutes and report to nearest doctor for urgent ECG.\n            CAP/TAB ASPIRIN 75 MG (Route: ORAL; Frequency: 0-1-0)\n            CAP/TAB AXCER 90 MG (Route: ORAL; Frequency: 1-0-0-1)\n            CAP/TAB ATORVAS 40 MG (Route: ORAL; Frequency: 0-0-0-1)\n            CAP/TAB ENVAS 5 MG (Route: ORAL; Frequency: 0-0-0-1)\n            CAP/TAB METOPROLOL XL 12.5 MG (Route: ORAL; Frequency: 1-0-0-0)\n            CAP/TAB SORBITRATE 5 MG (Route: ORAL; Frequency: SOS)\n            CAP/TAB FAMOTIDINE 20 MG (Route: ORAL; Frequency: 1-0-0-0)\n            For emergency please contact 0413-2296574 or +91 7867086319",
-                        "DIET ADVICE :\n      1. 1500 Calories(KCal)",  
-                        "FOLLOW-UP :\n          Cardio OPD 184 @ 9:00 AM Any Monday Apr-2024. At super speciality block after ------ weeks."
+}
 
-
-                    ]
-                }
-            ]
-            }
-    },
-    {
-        "PATIENT_3" : {
-            "ER" : [
-                {
-                    "DOCUMENT_ID": 1,
-                    "PASSAGES" : [
-                        "Patient Name : xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx         Proc. Date: 04/11/2022 11:00\n        Age/Gender : 66 Yrs /M          Procedure No: : xxxxxxxxxx\n        Hosp No : J-027262          CathLab : EMS Philips\n        Unit : Cardio 1         Location : CARDIOLOGY/CARDIO 5222/GENERAL BEDS/0\n        Status : IPD         MRD No : : 2022067299      \n        Category : Insurance TNCMCHIS       Inter. Attending : DR. SHAHEER AHMED A\n        Referred By : --        Second Attending : DR. CHINMAY PARALE GURUNATH\n        Admission Date & Time : 01/11/2022 19:20    Discharge Date & Time : 05/11/2022 16:25\n        Cardiology Adm Date & Time :        HCP Completion Date & Time : 05/11/2022 11:44\n        HCP Regn. Date & Time: 04/11/2022 17:21         Mobile No. : 9362654679",
-                        "HISTORY    \n      Recent Non-STEMI Past MI ",
-                        "RISK FACTORS : \n      Hypertension",
-                        "Physical Exam :\n        Height : 165 (cms)\n        Pulse Rate : 60 (/min)\n        Cardiac Enlargement : No\n        Weight : 65 (kgs)\n        BMI : 23.88 (Kg/m2)\n        BP-Systolic/Diastolic: 100/60 (mmHg)\n        JVP : Normal\n        Pallor : No\n        Edema : No",
-                        "Lab Findings :\n        03/11/2022\n        HIV negative\n        HepatitisB negative\n        HCV negative\n    \n        03/11/2022\n        Hb = 11.8 (gm/dl)\n        Platelet Count = 266000 (/cu.mm)\n        BU = 10 (mg/dl)\n        Creatinine = 0.56 (mg/dl)\n        \n        03/11/2022\n        Blood Glucose : RBS = 100 (mg/dl)",
-                        "ECG :\n        03/11/2022\n        SR\n        STD IN V3-\n        V6",
-                        "Echocardiography :\n03/11/2022\nNo regional wall motion abnormality, LVEF = 60 (%)\nShunts : IAS, IVS Intact, no PDA",
-                        "PREV. INTERVENTION : \n        NGIOGRAPHY : 19/09/2022 at JIPMER (EMS Philips / 28239.. )\n    Left Main - No Obstruction\n    LAD - No Obstruction\n    LCx - No Obstruction\n    RCA - RPDA Ostial, 90 - 95%, Denovo\n    RCA - RPL1, Total Occlusion, Denovo\n\n    RECOMMENDATIONs : \n    PCI TO PDA(1)",
-                        "ADMISSION DIAGNOSIS :\n        Others, CAD/ ACS-NSTEMI/ SVD OF LCX", 
-                        "PROCEDURES DETAILS :\n            Procedures Done : Coronary Intervention\n            Procedure Date : 04/11/2022\n            Procedure Number : xxxxxxx\n            Consultant : DR. SHAHEER AHMED A \n            Diagnostic Attending :  DR. SHAHID H SHALI\n            Resident Cathlab :  DR. CHINMAY PARALE GURUNATH",
-                        "RESULT :\n            Intervention : 1. Successful Intervention of RCA - RPDA (Drug Eluting stent)",
-                        "IN HOSPITAL COURSE :\n         Uneventful",
-                        "FINAL DIAGNOSIS\n      Diagnosis: Atherosclerotic heart disease (I25.1)",
-                        "CONDITION AT DISCHARGE :\n         Hemodynamically stable and asymptomatic",
-                        "ADVICE @ DISCHARGE :\n            1. Regular medications & STOP SMOKING.\n            2. Avoid Alcohol, Heavy exertion and lifting weights.\n            3. Diet - High fiber, low cholesterol, low sugar (no sugar if diabetic), fruits, vegetables (5 servings\n            per day).\n            4. Exercise - Walk at least for 30 minutes daily. Avoid if Chest pain.\n            5. TARGETS * LDL<70mg/dl *BP - 120/80mmHg * Sugar Fasting - 100mg/dl Post Breakfast - 150mg/dl\n            * BMI<25kg/m2.\n            6. IF CHEST PAIN - T.ANGISED 0.6 mg or T.SORBITRATE 5 mg keep under tongue. Repeat if no relief\n            @ 5 minutes and report to nearest doctor for urgent ECG.\n            For emergency please contact 0413-2296574 or +91 7867086319",
-                        "DIET ADVICE :\n            1. 1500 Calories(KCal) 2. Salt Restricted 3. Periodic monitoring of Blood Pressure 4. Anti-\n            Hypertensives to be readjusted at the advice of Diabetologist/Physician 5. Anti-Diabetics to be\n            readjusted at the advice of Diabetologist/Physician",
-                        "DISCHARGE MEDICATIONS :\n      1. CAP/TAB ASPRIRN 75MG (Route: ORAL; Frequency: 0-1-0-0)\n    2. CAP/TAB ATORVAS 40MG (Route: ORAL; Frequency: 0-1-0-0)\n    3. CAP/TAB TICASPAN 90MG (Route: ORAL; Frequency: 1-0-1)\n    4. CAP/TAB ENVAS 2.5 (Route: ORAL; Frequency: 2-0-0-1)\n    5. CAP/TAB OMEZ 20MG (Route: ORAL; Frequency: 1-0-1)\n    6. CAP/TAB PROLOMET XL 12.5MG (Route: ORAL; Frequency: 1-0-0-0)\n    7. CAP/TAB SORB 5MG (Route: ORAL; Frequency: SOS)\n    Medicines to be continued unless stopped or modified by Doctor",
-                        "FOLLOW-UP :\n      Cardio OPD 184 @ 9:00 AM Dec-2022. At super speciality block after ------ weeks."
-                    ]
-                }
-            ]
-            }
-    }
-]

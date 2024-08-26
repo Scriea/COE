@@ -4,10 +4,11 @@ from PIL import Image
 import torch
 import cv2
 from transformers import AutoModel, AutoTokenizer
-from td import TableDetector
 import matplotlib.pyplot as plt
 import json
-from util import pdf_to_images, split_text_by_keywords
+
+from .td import TableDetector
+from .util import pdf_to_images, split_text_by_keywords
 
 class DocumentReader:
     def __init__(self, device=None):
@@ -15,7 +16,7 @@ class DocumentReader:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
 
-    def extract_passages(self, input_pdf, phrases=None):
+    def extract_passages(self, input_pdf, phrases=None, output_path=None):
         text = self.extract_text(input_pdf)
         table = self.extract_table(input_pdf)
         if not phrases:
@@ -37,6 +38,17 @@ class DocumentReader:
             ]
         passages = split_text_by_keywords(text, phrases)
         passages[1] = table
+        ## Save the extracted passages to a JSON file with key = "Dicharge Summary" and value as list of passages
+        
+
+
+
+        # if output_path:
+        #     if output_path.endswith(".json"):
+        #         with open(os.path.join(output_path), "w") as f:
+        #             json.dump(passages, f, indent=4)
+        #     else:
+        #         raise ValueError("Output path should be a JSON file.")
         return passages
 
     def extract_text(self, input_pdf):

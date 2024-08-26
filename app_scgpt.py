@@ -21,10 +21,13 @@ with st.sidebar:
 
 ## General Configuration
 ROOT_DIR = subprocess.run(['git', 'rev-parse', '--show-toplevel'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
-EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
+EMBEDDINGS_FILE = os.path.join(ROOT_DIR, "embeddings", "paragraph_embeddings.npz")
+PASSAGE_FILE = os.path.join(ROOT_DIR, "data", "passages.json")
 device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
-chat_model = "meta-llama/Llama-2-7b-chat-hf"
-attribution_model = "meta-llama/Llama-2-7b-chat-hf"
+# chat_model = "meta-llama/Llama-2-7b-chat-hf" 
+chat_model="meta-llama/Meta-Llama-3-8B-Instruct"
+attribution_model = "meta-llama/Llama-2-7b-chat-hf" 
+# hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
 hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 @st.cache_resource

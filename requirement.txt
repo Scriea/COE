@@ -14,3 +14,8 @@ pdf2image
 PyMuPDF
 tqdm
 python-multipart
+moviepy
+soundfile
+librosa
+pyannote.audio
+pytesseract

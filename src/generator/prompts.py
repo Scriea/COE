@@ -1,3 +1,9 @@
+general_promt = """
+SYSTEM: You are a general agent tasked with providing accurate information based on the provided text. In case the query isn't related, or you don't have enough information, provide a general response.
+User Query: {}
+Answer: 
+"""
+
 medical_prompt = """
 SYSTEM: You are a knowledgeable medical agent tasked with providing accurate advice based on the provided discharge information. 
 

@@ -3,6 +3,9 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
 from typing import List
 
+# from huggingface_hub import login
+# login()
+
 import spacy
 import scispacy
 from scipy.stats import kstest
@@ -16,18 +19,16 @@ from transformers import (
     )
 
 import torch
-import pickle
 from tqdm import tqdm
 import stanza
 import re
-import argparse
 import random
 from datasets import load_dataset
-from utils import compute_f1, softmax, find_subset_indices, extract_text_between_double_quotes
+from utils import compute_f1, softmax, find_subset_indices, extract_text_between_double_quotes, read_entity_file
 
 ALOE_8B = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 BIO_MISTRAL_7B = "BioMistral/BioMistral-7B"
-
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 class HallucinationDetection:
     def __init__(self,):
         pass
@@ -47,7 +48,7 @@ class HallucinationDetection:
     
 
 class HalluCheck(HallucinationDetection):
-    def __init__(self, device=None, method="POS", model_path="HPAI-BSC/Llama3-Aloe-8B-Alpha"):
+    def __init__(self, device=None, method="POS", model_path=BIO_MISTRAL_7B):
         self.method = method.upper()
         if self.method=="NER":
             self.nlp = stanza.Pipeline(lang='en', processors='tokenize,ner')
@@ -55,14 +56,16 @@ class HalluCheck(HallucinationDetection):
             self.nlp = stanza.Pipeline(lang='en', processors='tokenize,pos')
         elif self.method=="MED":
             self.nlp = spacy.load("en_ner_bc5cdr_md")
+            self.entity_list = read_entity_file(os.path.join(CURRENT_DIR, "entities.txt"))
+            print(self.entity_list)
 
         if device is None:
             device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.device=device
+        self.device=torch.device(device)
         self.tokenizer_ques_gen = AutoTokenizer.from_pretrained("mrm8488/t5-base-finetuned-question-generation-ap")
-        self.model_ques_gen = AutoModelWithLMHead.from_pretrained("mrm8488/t5-base-finetuned-question-generation-ap", device_map=self.device)
+        self.model_ques_gen = AutoModelWithLMHead.from_pretrained("mrm8488/t5-base-finetuned-question-generation-ap").to(self.device)
 
-        self.qa_model = pipeline("question-answering", device=self.device)
+        self.qa_model = pipeline("question-answering", device=int(self.device.index))
         
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_path,
@@ -72,10 +75,9 @@ class HalluCheck(HallucinationDetection):
             model_path, 
             trust_remote_code=True, 
             output_attentions=True, 
-            device_map=self.device
-        )
+        ).to(self.device)
 
-        self.model.to(self.device)
+        # self.model.to(self.device)
         self.tokenizer.pad_token_id = self.tokenizer.bos_token_id
         self.tokenizer.padding_side = "left"
 
@@ -98,6 +100,7 @@ class HalluCheck(HallucinationDetection):
             initial_hallu = self.compare_orig_and_regenerated(generated_questions, text, regenerated_answers)
             print("\n\nInitial Hallucination", initial_hallu)
             final_hallu = self.check_with_probability(regenerated_answers, initial_hallu[2], scores, initial_hallu[0])
+            print("\n\nFinal Hallucination", final_hallu)
             if final_hallu == []:
                 prob_hallu = None
             else:
@@ -181,6 +184,11 @@ class HalluCheck(HallucinationDetection):
             ner_sent = self.nlp(sentence)
             output_list = [ent.text for ent in ner_sent.ents]
             ## Make Unique
+            output_list = list(set(ent.lower() for ent in output_list))
+
+            for entity in self.entity_list:
+                if entity.lower() in sentence.lower():
+                    output_list.append(entity)
             output_list = list(set(ent.lower() for ent in output_list))
 
         questions_answer_list = []
@@ -397,59 +405,59 @@ class SelfCheckGPT(HallucinationDetection):
 if __name__=="__main__":
     ## Example Usage
     device="cuda:1"
-    # HC = HalluCheck(device="cuda:2", method= "POS" )
-    # hallucination_prop = HC.hallucination_prop("The capital of France is Mumbai.")
-    # print("Probability of Hallucination : ", hallucination_prop)
+    HC = HalluCheck(device="cuda:1", method= "MED" )
+    hallucination_prop = HC.hallucination_prop("Alcohol is bad for health. For heart attack, a surgery known as angioplasty is performed.")
+    print("Probability of Hallucination : ", hallucination_prop)
     
-    tokenizer = AutoTokenizer.from_pretrained(
-        "meta-llama/Meta-Llama-3-8B-Instruct" ,
-        # padding = True
-        )
-    tokenizer.pad_token = tokenizer.eos_token
-    model = AutoModelForCausalLM.from_pretrained(
-            "meta-llama/Meta-Llama-3-8B-Instruct" , 
-            trust_remote_code=True, 
-            output_attentions=True, 
-            device_map=device
-        )
+    # tokenizer = AutoTokenizer.from_pretrained(
+    #     "meta-llama/Meta-Llama-3-8B-Instruct" ,
+    #     # padding = True
+    #     )
+    # tokenizer.pad_token = tokenizer.eos_token
+    # model = AutoModelForCausalLM.from_pretrained(
+    #         "meta-llama/Meta-Llama-3-8B-Instruct" , 
+    #         trust_remote_code=True, 
+    #         output_attentions=True, 
+    #         device_map=device
+    #     )
 
-    model.to(device)
+    # model.to(device)
 
-    query = "What is the captial of France?"
-    prompt = f"<s>[INST] Question: {query}\n Answer with reasoning: [/INST]"
-    tokenized_inputs = tokenizer.batch_encode_plus(
-        [prompt]*20,
-        return_tensors="pt", 
-        padding = "longest", 
-        return_attention_mask = True
-        )
-    tokenized_inputs = tokenized_inputs.to(device)
-    N=tokenized_inputs['input_ids'].shape[1]
+    # query = "What is the captial of France?"
+    # prompt = f"<s>[INST] Question: {query}\n Answer with reasoning: [/INST]"
+    # tokenized_inputs = tokenizer.batch_encode_plus(
+    #     [prompt]*20,
+    #     return_tensors="pt", 
+    #     padding = "longest", 
+    #     return_attention_mask = True
+    #     )
+    # tokenized_inputs = tokenized_inputs.to(device)
+    # N=tokenized_inputs['input_ids'].shape[1]
 
-    outputs = model.generate(
-        **tokenized_inputs, 
-        return_dict_in_generate=True, 
-        output_scores=True, 
-        max_new_tokens = 64, 
-        # early_stopping=True,
-        # num_beams=8,
-        do_sample=True,
-        temperature=0.9,
-        )
+    # outputs = model.generate(
+    #     **tokenized_inputs, 
+    #     return_dict_in_generate=True, 
+    #     output_scores=True, 
+    #     max_new_tokens = 64, 
+    #     # early_stopping=True,
+    #     # num_beams=8,
+    #     do_sample=True,
+    #     temperature=0.9,
+    #     )
     
-    predicted_token_ids = outputs['sequences']
-    answers = tokenizer.batch_decode(predicted_token_ids[:, N:], skip_special_tokens=True)
-    text = """
-        The capital of France is Paris.
-        The capital of France is Mumbai.
-    """
-    SC = SelfCheckGPT(device="cuda:2")
-    text = """
-    Paris (French pronunciation: [paʁi] ⓘ) is the capital and largest city of France. 
-    With an official estimated population of 2,102,650 residents in January 2023[2] in an area of more than 105 km2 (41 sq mi),[5] Paris is the fourth-largest city in the European Union and the 30th most densely populated city in the world in 2022.
-    Since the 17th century, Paris has been one of the world's major centres of finance, diplomacy, commerce, culture, fashion, and gastronomy.
-    For its leading role in the arts and sciences, as well as its early and extensive system of street lighting, in the 19th century, it became known as the City of Light.[7]
-    The capital of France is Mumbai. The capital of France is Delhi. The capital of France is Paris
-    """
-    hallucination_prop = SC.hallucination_prop(text=text, Passages=answers, context="")
-    print(hallucination_prop)
+    # predicted_token_ids = outputs['sequences']
+    # answers = tokenizer.batch_decode(predicted_token_ids[:, N:], skip_special_tokens=True)
+    # text = """
+    #     The capital of France is Paris.
+    #     The capital of France is Mumbai.
+    # """
+    # SC = SelfCheckGPT(device="cuda:2")
+    # text = """
+    # Paris (French pronunciation: [paʁi] ⓘ) is the capital and largest city of France. 
+    # With an official estimated population of 2,102,650 residents in January 2023[2] in an area of more than 105 km2 (41 sq mi),[5] Paris is the fourth-largest city in the European Union and the 30th most densely populated city in the world in 2022.
+    # Since the 17th century, Paris has been one of the world's major centres of finance, diplomacy, commerce, culture, fashion, and gastronomy.
+    # For its leading role in the arts and sciences, as well as its early and extensive system of street lighting, in the 19th century, it became known as the City of Light.[7]
+    # The capital of France is Mumbai. The capital of France is Delhi. The capital of France is Paris
+    # """
+    # hallucination_prop = SC.hallucination_prop(text=text, Passages=answers, context="")
+    # print(hallucination_prop)

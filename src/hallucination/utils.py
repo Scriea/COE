@@ -9,6 +9,15 @@ import json
 import math
 import string
 
+
+def read_entity_file(path):
+    if not path.endswith('.txt'):
+        raise ValueError("Entity file should be a .txt file")
+    
+    with open(path, 'r') as f:
+        text = f.read()
+    entities = [entity.strip() for entity in text.split(",")] 
+    return entities
 ## ----------------------------------------------------------------
 
 """

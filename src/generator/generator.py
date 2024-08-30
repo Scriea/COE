@@ -78,6 +78,7 @@ class Generator:
                     # num_beams=5,
                     do_sample=True,
                     max_new_tokens=512,
+                    repetition_penalty=1.1,
                 )
 
             # Decode the response

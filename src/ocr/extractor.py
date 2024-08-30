@@ -10,6 +10,7 @@ import json
 from .td import TableDetector
 from .util import pdf_to_images, split_text_by_keywords
 
+
 class DocumentReader:
     def __init__(self, device=None):
         if not device:
@@ -21,32 +22,32 @@ class DocumentReader:
         table = self.extract_table(input_pdf)
         if not phrases:
             phrases = [
-            'Discharge Summary', 
-            'HISTORY', 
-            'RISK FACTORS', 
-            "CLINICAL FINDINGS", 
-            "ADMISSION DIAGNOSIS", 
-            "PREV. INTERVENTION", 
-            "PROCEDURES DETAILS", 
-            "RESULT :", 
-            "IN HOSPITAL COURSE :", 
-            "FINAL DIAGNOSIS", 
-            "CONDITION AT DISCHARGE", 
-            "ADVICE @ DISCHARGE", 
-            "DIET ADVICE", 
-            "DISCHARGE MEDICATIONS"
+                "Discharge Summary",
+                "HISTORY",
+                "RISK FACTORS",
+                "CLINICAL FINDINGS",
+                "ADMISSION DIAGNOSIS",
+                "PREV. INTERVENTION",
+                "PROCEDURES DETAILS",
+                "RESULT :",
+                "IN HOSPITAL COURSE :",
+                "FINAL DIAGNOSIS",
+                "CONDITION AT DISCHARGE",
+                "ADVICE @ DISCHARGE",
+                "DIET ADVICE",
+                "DISCHARGE MEDICATIONS",
             ]
         passages = split_text_by_keywords(text, phrases)
-        passages[1] = table
+        try:
+            passages[1] = table
+        except IndexError as e:
+            print(f"Upload correct discharge summary")
         ## Save the extracted passages to a JSON file with key = "Dicharge Summary" and value as list of passages
-        
-
-
-
-        # if output_path:
-        #     if output_path.endswith(".json"):
-        #         with open(os.path.join(output_path), "w") as f:
-        #             json.dump(passages, f, indent=4)
+        json_data = {"EHR": passages}
+        if output_path:
+            if output_path.endswith(".json"):
+                with open(os.path.join(output_path), "w") as f:
+                    json.dump(json_data, f, indent=4)
         #     else:
         #         raise ValueError("Output path should be a JSON file.")
         return passages
@@ -72,18 +73,24 @@ class DocumentReader:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         ## Table detection
-        table_det = TableDetector()   
+        table_det = TableDetector()
         dets = table_det.predict(image=image)
-        if dets ==[]:
-            return
+        if dets == []:
+            return ""
         det = dets[0]
         x1, y1, x2, y2 = map(int, det)  # Convert coordinates to integers
         cropped_img = image[y1:y2, x1:x2]  # Crop the image using the bounding box
         # plt.imsave("cropped_img_new.jpg", cropped_img)
-        
+
         # Load the model and tokenizer
-        model = AutoModel.from_pretrained('openbmb/MiniCPM-Llama3-V-2_5-int4', trust_remote_code=True)
-        tokenizer = AutoTokenizer.from_pretrained('openbmb/MiniCPM-Llama3-V-2_5-int4', trust_remote_code=True, device_map=self.device)
+        model = AutoModel.from_pretrained(
+            "openbmb/MiniCPM-Llama3-V-2_5-int4", trust_remote_code=True
+        )
+        tokenizer = AutoTokenizer.from_pretrained(
+            "openbmb/MiniCPM-Llama3-V-2_5-int4",
+            trust_remote_code=True,
+            device_map=self.device,
+        )
         model.eval()
 
         # Define the questions and prompts
@@ -94,8 +101,8 @@ class DocumentReader:
         """
         # Perform inference
 
-        msgs = [{'role': 'user', 'content': question}]
-        
+        msgs = [{"role": "user", "content": question}]
+
         res = model.chat(
             image=Image.fromarray(cropped_img),
             msgs=msgs,
@@ -103,7 +110,7 @@ class DocumentReader:
             sampling=False,  # if sampling=False, beam_search will be used by default
             temperature=0.3,
             num_beams=8,
-            system_prompt=system_prompt
+            system_prompt=system_prompt,
         )
 
         # print(res)
@@ -115,7 +122,7 @@ class DocumentReader:
         # except ValueError:
         #     print("Invalid JSON")
         #     return None
-        
+
         return res
 
 
@@ -124,28 +131,29 @@ if __name__ == "__main__":
     out = dr.extract_text("/home/iitb_admin_user/COE/Anonymized_EHR/EHR_masked2.pdf")
     # print(out)
     phrases = [
-        'Discharge Summary', 
-        'HISTORY', 
-        'RISK FACTORS', 
-        "CLINICAL FINDINGS", 
-        "ADMISSION DIAGNOSIS", 
-        "PREV. INTERVENTION", 
-        "PROCEDURES DETAILS", 
-        "RESULT :", 
-        "IN HOSPITAL COURSE :", 
-        "FINAL DIAGNOSIS", 
-        "CONDITION AT DISCHARGE", 
-        "ADVICE @ DISCHARGE", 
-        "DIET ADVICE", 
-        "DISCHARGE MEDICATIONS"
-        ]
-    passages = dr.extract_passages("/home/iitb_admin_user/COE/Anonymized_EHR/EHR_masked2.pdf")
-    
+        "Discharge Summary",
+        "HISTORY",
+        "RISK FACTORS",
+        "CLINICAL FINDINGS",
+        "ADMISSION DIAGNOSIS",
+        "PREV. INTERVENTION",
+        "PROCEDURES DETAILS",
+        "RESULT :",
+        "IN HOSPITAL COURSE :",
+        "FINAL DIAGNOSIS",
+        "CONDITION AT DISCHARGE",
+        "ADVICE @ DISCHARGE",
+        "DIET ADVICE",
+        "DISCHARGE MEDICATIONS",
+    ]
+    passages = dr.extract_passages(
+        "/home/iitb_admin_user/COE/Anonymized_EHR/EHR_masked2.pdf"
+    )
+
     print(len(passages))
     for passage in passages[1:]:
         print(f'"""\n{passage}\n"""\n\n\n\n\n\n\n\n\n\n\n\n')
 
-
     json_data = json.dumps(passages[1:], indent=4)
-    with open('passages.json', 'w') as json_file:
+    with open("passages.json", "w") as json_file:
         json_file.write(json_data)

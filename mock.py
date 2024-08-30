@@ -39,14 +39,14 @@ if "pdf_processed" not in st.session_state:
     st.session_state.pdf_processed = False
 if "user_lang" not in st.session_state:
     st.session_state.user_lang = 1  # "English" is default language
+if "audio" not in st.session_state:
+    st.session_state.audio = None
 if "audio_text" not in st.session_state:
     st.session_state.audio_text = ""
 if "audio_uploaded" not in st.session_state:
     st.session_state.audio_uploaded = False  # Flag to track if audio is uploaded
 if "display_audio" not in st.session_state:
     st.session_state.display_audio = False  # Flag to control audio display
-if "audio_timestamp" not in st.session_state:
-    st.session_state.audio_timestamp = None  # Timestamp of the last processed audio
 
 
 # Define the clear_chat_history function
@@ -57,6 +57,7 @@ def clear_chat_history():
     st.session_state.passages = None
     st.session_state.search_index = None
     st.session_state.paragraphs = None
+    st.session_state.audio = None
     # st.session_state.pdf_processed = False
     # st.session_state.audio_text = ""  # Reset the audio text
 
@@ -82,12 +83,12 @@ def load_attribution_module():
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_path=chat_model, device="cuda:7")
+    return Generator(model_path=chat_model, device="cuda:6")
 
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:7", method="MED", model_path=hallucination_model)
+    return HalluCheck(device="cuda:6", method="MED", model_path=hallucination_model)
 
 
 @st.cache_resource
@@ -183,9 +184,21 @@ with st.sidebar:
     # Check if the language has changed
     if prev_lang != st.session_state.user_lang:
         st.session_state.display_audio = False
+        st.session_state.audio_text = ""  # Clear transcribed text
+        st.scatter_state.audio = None  #
     # Add a PDF uploader in the sidebar
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
     if uploaded_file is not None:
+        if (
+            "last_uploaded_file" not in st.session_state
+            or st.session_state.last_uploaded_file != uploaded_file.name
+        ):
+            st.session_state.pdf_processed = False
+            st.session_state.passages = None
+            st.session_state.search_index = None
+            st.session_state.paragraphs = None
+            st.session_state.last_uploaded_file = uploaded_file.name
+
         if not st.session_state.pdf_processed:  # Only process if not already processed
             with st.spinner("Processing document..."):
                 # Save the uploaded file to a temporary location
@@ -242,9 +255,8 @@ with st.sidebar:
                 )
                 st.session_state.search_index = search_index  # Store in session state
                 st.session_state.paragraphs = paragraphs  # Store in session state
-                st.session_state.pdf_processed = (
-                    True  # Set the flag to indicate processing is done
-                )
+                st.session_state.pdf_processed = True
+                # Set the flag to indicate processing is done
 
     # Add a clear history button
 
@@ -281,9 +293,7 @@ with st.sidebar:
             st.session_state.audio_uploaded = (
                 True  # Set flag to indicate audio is uploaded
             )
-            st.session_state.display_audio = (
-                True  # Set flag to control display of audio and text
-            )
+            st.session_state.display_audio = True
 
     # Display audio and transcribed text only if the flag is set and language hasn't changed
     if st.session_state.display_audio and st.session_state.audio_text:

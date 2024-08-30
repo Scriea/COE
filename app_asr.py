@@ -89,6 +89,7 @@ def get_response(user_query):
         and st.session_state.paragraphs.size > 0
     ):
         prompt = prompts.medical_prompt.format(st.session_state.passages, user_query)
+        print(prompt)
         response = generator.generate_response(prompt)
         attribution_paragraphs = [""]
         attribution_query = f"Question: {user_query}\nAnswer: {response}"
@@ -101,7 +102,8 @@ def get_response(user_query):
         retrieved_passages = retrieval_results[0]["retrieved_paragraphs"][0]
 
         hallucination_probabilities = hallucination_checker.hallucination_prop(
-            response, context="st.session_state.passages"
+            response, 
+            # context=st.session_state.passages
         )
 
         sentences = split_sentences(response)
@@ -146,16 +148,75 @@ with st.sidebar:
     # Add a PDF uploader in the sidebar
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
     if uploaded_file is not None:
-        if not st.session_state.pdf_processed:
-            # Your existing PDF processing logic here
-            pass
+        if not st.session_state.pdf_processed:  # Only process if not already processed
+            with st.spinner("Processing document..."):
+                # Save the uploaded file to a temporary location
+                temp_file_path = os.path.join("/tmp", uploaded_file.name)
+                with open(temp_file_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+
+                # Initialize the DocumentReader
+                dr = DocumentReader(device="cuda:4")
+
+                # Extract text from the uploaded PDF
+                extracted_text = dr.extract_text(temp_file_path)
+
+                # Extract specific passages from the uploaded PDF
+                phrases = [
+                    "Discharge Summary",
+                    "HISTORY",
+                    "RISK FACTORS",
+                    "CLINICAL FINDINGS",
+                    "ADMISSION DIAGNOSIS",
+                    "PREV. INTERVENTION",
+                    "PROCEDURES DETAILS",
+                    "RESULT :",
+                    "IN HOSPITAL COURSE :",
+                    "FINAL DIAGNOSIS",
+                    "CONDITION AT DISCHARGE",
+                    "ADVICE @ DISCHARGE",
+                    "DIET ADVICE",
+                    "DISCHARGE MEDICATIONS",
+                ]
+                passages = dr.extract_passages(
+                    temp_file_path, output_path=PASSAGE_FILE, phrases=phrases
+                )
+                st.session_state.passages = passages  # Store in session state
+
+                ## Merge Passage to form a single text
+                joint_passages = "\n".join(passages)
+                st.success("Document processed successfully!")
+                # st.write("**Extracted Text:**")
+                # st.text(joint_passages)
+                # st.write("**Extracted Passages:**")
+                # st.json(passages)
+
+                # Vectorize the passages extracted from OCR
+                embedding_file_path = os.path.join(
+                    attribution_module.output_dir, "paragraph_embeddings.npz"
+                )
+                attribution_module.vectorize_paragraphs(
+                    passages_file=PASSAGE_FILE,
+                    output_file=embedding_file_path,
+                    force=True,
+                )
+
+                # Proceed with creating the FAISS index
+                search_index, paragraphs = attribution_module.create_faiss_index(
+                    embedding_file_path=embedding_file_path, ngpu=1
+                )
+                st.session_state.search_index = search_index  # Store in session state
+                st.session_state.paragraphs = paragraphs  # Store in session state
+                st.session_state.pdf_processed = (
+                    True  # Set the flag to indicate processing is done
+                )
 
     # Add a clear history button
     st.button("Clear Chat History", on_click=clear_chat_history)
 
 # Audio recording
 st.write("### Record Audio")
-audio = audiorecorder("Start Recording", "Stop Recording")
+audio = audiorecorder(" ► ", " ◼ ", " || ")
 
 if len(audio) > 0:
     st.audio(audio.export().read())  # Play the recorded audio

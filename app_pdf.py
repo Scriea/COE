@@ -89,7 +89,9 @@ def get_response(user_query):
         and st.session_state.paragraphs is not None
         and st.session_state.paragraphs.size > 0
     ):
-        prompt = prompts.medical_prompt.format(st.session_state.passages, user_query)
+        joint_passages = "\n".join(st.session_state.passages)
+        prompt = prompts.medical_prompt.format(joint_passages, user_query)
+        
         response = generator.generate_response(prompt)
         attribution_paragraphs = [""]
         attribution_query = f"Question: {user_query}\nAnswer: {response}"
@@ -102,7 +104,8 @@ def get_response(user_query):
         retrieved_passages = retrieval_results[0]["retrieved_paragraphs"][0]
 
         hallucination_probabilities = hallucination_checker.hallucination_prop(
-            response, context="st.session_state.passages"
+            response, 
+            # context=" ".join(st.session_state.passages)
         )
 
         sentences = split_sentences(response)
@@ -124,7 +127,7 @@ def get_response(user_query):
         assistant_message = "\n\n".join(assistant_message_parts)
     else:
         # If no PDF or index, just generate a response without attribution or hallucination check
-        promt = prompts.general_promt.format(user_query)
+        promt = prompts.general_prompt.format(user_query)
         response = generator.generate_response(promt)
         assistant_message = f"**Generated Response:** {response}"
 

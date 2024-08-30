@@ -4,13 +4,14 @@ import json
 
 
 class TranslateModule:
-    def __init__(self, defaultlang="eng_Latn"):
+    def __init__(self, defaultlang=1):
         self.defaultlang = defaultlang
 
     def translate(self, query, src_lang, dst_lang):
-        # url = f"http://127.0.0.1:5000/udaan_project_layout/translate/{src_lang}/{dst_lang}"
-        url = f"http://10.10.13.2:5000/udaan_project_layout/translate/{src_lang}/{dst_lang}"
-        # url = f"http://103.42.51.129:5000/udaan_project_layout/translate/{src_lang}/{dst_lang}"
+        langs = {1: "eng_Latn", 2: "hin_Deva", 3: "tam_Taml"}
+        url = f"http://127.0.0.1:5000/udaan_project_layout/translate/{langs[src_lang]}/{langs[dst_lang]}"
+        # url = f"http://10.10.13.2:5000/udaan_project_layout/translate/{langs[src_lang]}/{langs[dst_lang]}"
+        # url = f"http://103.42.51.129:5000/udaan_project_layout/translate/{langs[src_lang]}/{langs[dst_lang]}"
 
         # Data to be translated
         payload = {"sentence": query}
@@ -20,7 +21,7 @@ class TranslateModule:
             "Content-Type": "application/x-www-form-urlencoded"
             # "Authorization": "Bearer YOUR_API_KEY"  # Uncomment if API key is needed
         }
-        if src_lang == "eng_Latn" and dst_lang == "hin_Deva":
+        if langs[src_lang] == "eng_Latn" and langs[dst_lang] == "hin_Deva":
             # url = "http://103.42.51.129:5001/udaan_project_layout/translate/en/hi/med,med_comp/0"
             url = "http://10.10.13.2:5001/udaan_project_layout/translate/en/hi/med,med_comp/0"
         # url = "http://127.0.0.1:5001/udaan_project_layout/translate/en/hi/med,med_comp/0"
@@ -31,9 +32,6 @@ class TranslateModule:
             response.raise_for_status()  # Raise an HTTPError if the HTTP request returned an unsuccessful status code
             translated_data = response.json()  # Parse the JSON response
             print(response.json())
-            with open("temp.json", "a") as f:
-                json.dump(response.json(), f, indent=2)
-
             translated_text = translated_data.get(
                 "translation", "Translation key not found"
             )
@@ -72,9 +70,7 @@ if __name__ == "__main__":
     trans = TranslateModule()
     try:
         trans.translate(
-            "I am a tree and ethanol is not good for my gut. the liver is damaged.",
-            "eng_Latn",
-            "hin_Deva",
+            "நான் ஒரு மரம் மற்றும் எத்தனால் என் குடலுக்கு நல்லதல்ல. கல்லீரல் மோசமாக உள்ளது.", 3, 1
         )
     except Exception as e:
         print(f"An error occurred during translation: {e}")

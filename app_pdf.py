@@ -12,8 +12,10 @@ from src.generator.generator import Generator
 from src.generator import prompts
 from src.hallucination.hallucination import HalluCheck, SelfCheckGPT
 from src.ocr import DocumentReader
+from src.translation.apicall import TranslateModule
 import re
 
+lang_index = {"English": 1, "Hindi": 2, "Tamil": 3}
 # Streamlit Configuration
 st.set_page_config(page_title="💬 Medical Agent")
 
@@ -32,6 +34,9 @@ if (
     "pdf_processed" not in st.session_state
 ):  # Flag to track if the PDF has been processed
     st.session_state.pdf_processed = False
+
+if "user_lang" not in st.session_state:
+    st.session_state.user_lang = 1
 
 
 # Define the clear_chat_history function
@@ -54,26 +59,29 @@ ROOT_DIR = (
 EMBEDDINGS_FILE = os.path.join(ROOT_DIR, "embeddings", "paragraph_embeddings.npz")
 PASSAGE_FILE = os.path.join(ROOT_DIR, "data", "passages.json")
 device = torch.device("cuda:7" if torch.cuda.is_available() else "cpu")
-# chat_model = "meta-llama/Llama-2-7b-chat-hf"
 chat_model = "meta-llama/Meta-Llama-3-8B-Instruct"
 attribution_model = "meta-llama/Llama-2-7b-chat-hf"
-# hallucination_model = "meta-llama/Llama-2-7b-chat-hf"
 hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 
 @st.cache_resource
 def load_attribution_module():
-    return AttributionModule(device="cuda:2")
+    return AttributionModule(device="cuda:3")
 
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_path=chat_model, device="cuda:2")
+    return Generator(model_path=chat_model, device="cuda:3")
 
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:4", method="MED", model_path=hallucination_model)
+    return HalluCheck(device="cuda:1", method="MED", model_path=hallucination_model)
+
+
+@st.cache_resource
+def load_translate(index_lang):
+    return TranslateModule(defaultlang=index_lang)
 
 
 def split_sentences(text):
@@ -136,11 +144,17 @@ generator = load_generator()
 hallucination_checker = load_hallucination_checker()
 
 with st.sidebar:
+
     st.title("Medical Agent")
     st.write(
         "This is a chatbot that can answer medical queries from discharge summaries."
     )
-
+    st.session_state.user_lang = lang_index[
+        st.selectbox(
+            "Select Language for Transcription",
+            ["English", "Hindi", "Tamil", "Telugu", "Malayalam"],
+        )
+    ]
     # Add a PDF uploader in the sidebar
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
     if uploaded_file is not None:
@@ -152,7 +166,7 @@ with st.sidebar:
                     f.write(uploaded_file.getbuffer())
 
                 # Initialize the DocumentReader
-                dr = DocumentReader(device="cuda:4")
+                dr = DocumentReader(device="cuda:1")
 
                 # Extract text from the uploaded PDF
                 extracted_text = dr.extract_text(temp_file_path)
@@ -254,10 +268,26 @@ if (
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
             placeholder = st.empty()
+            user_query = st.session_state.chat_history[-1]["content"]
+            if st.session_state.user_lang != 1:
+                translator = load_translate(st.session_state.user_lang)
+                user_query = translator.translate(
+                    st.session_state.chat_history[-1]["content"],
+                    st.session_state.user_lang,
+                    1,
+                )
+                pass
+                ## translation
+            assistant_message = get_response(user_query)
 
-            assistant_message = get_response(
-                st.session_state.chat_history[-1]["content"]
-            )
+            if st.session_state.user_lang != 1:
+                translator = load_translate(st.session_state.user_lang)
+                translated_response = translator.translate(
+                    assistant_message, 1, st.session_state.user_lang
+                )
+                assistant_message = translated_response
+                pass
+                ## translate back to en
             placeholder.markdown(assistant_message, unsafe_allow_html=True)
             st.session_state.chat_history.append(
                 {"role": "assistant", "content": assistant_message}

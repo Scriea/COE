@@ -68,6 +68,9 @@ class TranslateModule:
 
         return translated_text
 
+    def change_lang(self, lang):
+        self.defaultlang = lang
+
 
 if __name__ == "__main__":
     trans = TranslateModule()

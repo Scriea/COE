@@ -166,6 +166,15 @@ with st.sidebar:
     # Add a PDF uploader in the sidebar
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
     if uploaded_file is not None:
+        if (
+            "last_uploaded_file" not in st.session_state
+            or st.session_state.last_uploaded_file != uploaded_file.name
+        ):
+            st.session_state.pdf_processed = False
+            st.session_state.passages = None
+            st.session_state.search_index = None
+            st.session_state.paragraphs = None
+            st.session_state.last_uploaded_file = uploaded_file.name
         if not st.session_state.pdf_processed:  # Only process if not already processed
             with st.spinner("Processing document..."):
                 # Save the uploaded file to a temporary location

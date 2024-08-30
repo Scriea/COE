@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import os
 from datetime import timedelta
 import re
-from xml_creation import get_speaker
+from .xml_creation import get_speaker
 
 def parse_xml(file_path):
     tree = ET.parse(file_path)

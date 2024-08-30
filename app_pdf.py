@@ -211,29 +211,6 @@ with st.sidebar:
     # Add a clear history button
     st.button("Clear Chat History", on_click=clear_chat_history)
 
-# # Load and process passages if no new PDF is uploaded but the previous data exists
-# if st.session_state.passages is None:
-#     passages_file = os.path.join(ROOT_DIR, "data", "passages.json")
-#     if os.path.exists(passages_file):
-#         st.session_state.passages = attribution_module.load_paragraphs(
-#             passages_file=passages_file
-#         )
-#         joint_passages = "\n".join(st.session_state.passages)
-
-#         embedding_file_path = os.path.join(
-#             attribution_module.output_dir, "paragraph_embeddings.npz"
-#         )
-#         if os.path.exists(embedding_file_path):
-#             attribution_module.vectorize_paragraphs(
-#                 passages_file=passages_file, output_file=embedding_file_path
-#             )
-
-#         st.session_state.search_index, st.session_state.paragraphs = (
-#             attribution_module.create_faiss_index(
-#                 embedding_file_path=embedding_file_path, ngpu=1
-#             )
-#         )
-
 # Display or clear chat messages
 for message in st.session_state.chat_history:
     with st.chat_message(message["role"]):

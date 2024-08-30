@@ -19,3 +19,5 @@ soundfile
 librosa
 pyannote.audio
 pytesseract
+streamlit
+streamlit-webrtc

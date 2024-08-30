@@ -13,6 +13,19 @@ from src.ocr import DocumentReader
 from src.asr import ASR  # Import your ASR class
 from audiorecorder import audiorecorder  # Import the audiorecorder
 
+
+lang_index = {
+    "English": 1,
+    "Hindi": 2,
+    "Tamil": 3
+}
+
+index_lang = {
+    1: "English",
+    2: "Hindi",
+    3: "Tamil"
+}
+
 nlp = spacy.load("en_core_web_sm")
 # Streamlit Configuration
 st.set_page_config(page_title="💬 Medical Agent")
@@ -31,7 +44,7 @@ if "pdf_processed" not in st.session_state:
 if "audio_text" not in st.session_state:
     st.session_state.audio_text = ""
 if "user_lang" not in st.session_state:
-    st.session_state.user_lang = "English"  # Default language
+    st.session_state.user_lang = 1 # "English" is default language
 
 # Define the clear_chat_history function
 def clear_chat_history():
@@ -128,7 +141,7 @@ with st.sidebar:
     st.write("This is a chatbot that can answer medical queries from discharge summaries.")
 
     # Language selection for transcription
-    st.session_state.user_lang = st.selectbox("Select Language for Transcription", ["English", "Hindi", "Tamil", "Telugu", "Malayalam"])
+    st.session_state.user_lang = lang_index[st.selectbox("Select Language for Transcription", ["English", "Hindi", "Tamil", "Telugu", "Malayalam"])]
 
     # Add a PDF uploader in the sidebar
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
@@ -152,7 +165,7 @@ if len(audio) > 0:
     audio.export(audio_file_path, format="wav")
 
     # Process the recorded audio with ASR
-    results = asr.speech_to_text(audio_file_path, st.session_state.user_lang)
+    results = asr.speech_to_text(audio_file_path, index_lang[st.session_state.user_lang])
     st.session_state.audio_text = results
     st.write(f"Transcribed Text: {results}")
 

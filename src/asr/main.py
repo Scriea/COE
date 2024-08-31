@@ -110,6 +110,7 @@ class ASR:
             except Exception as e:
                 print(f"Error processing {media_input}: {e}")
                 results[os.path.basename(media_input)] = None
+                return None
         else:
             raise ValueError("The provided media_input path is neither a directory nor a file.")
     

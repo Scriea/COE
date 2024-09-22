@@ -19,11 +19,27 @@ from src.table_attributor import get_attributed_image
 from audiorecorder import audiorecorder  # Import the audiorecorder
 
 sys.path.append("/home/iitb_admin_user/kaushik/COE/src/table_attributor")
+
+# os.makedirs("./temp/documents", exist_ok=True)
+
 lang_index = {"English": 1, "Hindi": 2, "Tamil": 3}
 index_lang = {1: "English", 2: "Hindi", 3: "Tamil"}
 
 nlp = spacy.load("en_core_web_sm")
+
+
 # Streamlit Configuration
+def suppress_streamlit_errors(exc_type, exc_value, exc_traceback):
+    # Log the error internally if needed (e.g., to a file or monitoring system)
+    # Uncomment the line below to log the error details instead of showing them on the UI
+    print(f"Error occurred: {exc_value}")  # or use logging
+
+    # Suppress the error display in the Streamlit app
+    st.write("An unexpected issue occurred, but the app is still running smoothly!")
+
+
+sys.excepthook = suppress_streamlit_errors
+
 st.set_page_config(page_title="💬 Medical Agent")
 
 # Initialize session state if not already done
@@ -122,17 +138,17 @@ hallucination_model = "HPAI-BSC/Llama3-Aloe-8B-Alpha"
 
 @st.cache_resource
 def load_attribution_module():
-    return AttributionModule(device="cuda:1")
+    return AttributionModule(device="cuda:5")
 
 
 @st.cache_resource
 def load_generator():
-    return Generator(model_path=chat_model, device="cuda:4")
+    return Generator(model_path=chat_model, device="cuda:6")
 
 
 @st.cache_resource
 def load_hallucination_checker():
-    return HalluCheck(device="cuda:4", method="MED", model_path=hallucination_model)
+    return HalluCheck(device="cuda:6", method="MED", model_path=hallucination_model)
 
 
 @st.cache_resource
@@ -199,14 +215,12 @@ def get_response(user_query):
         st.session_state.retrieved_passages = retrieved_passages
         if len(st.session_state.retrieved_passages):
             with st.spinner("Referencing..."):
-                print(123123123123123)
                 final_image = get_attributed_image(
                     pdf_path=st.session_state.pdf_filename,
                     answer=st.session_state.retrieved_passages,
                 )
                 st.session_state.answer = st.session_state.retrieved_passages
                 st.session_state.image = final_image
-                print(6546894968465)
         else:
             pass
 
@@ -281,7 +295,7 @@ with st.sidebar:
         if not st.session_state.pdf_processed:  # Only process if not already processed
             with st.spinner("Processing document..."):
                 # Save the uploaded file to a temporary location
-                temp_file_path = os.path.join("/tmp", uploaded_file.name)
+                temp_file_path = os.path.join("./temp/documents", uploaded_file.name)
                 with open(temp_file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
 

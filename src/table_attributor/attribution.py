@@ -7,6 +7,7 @@ def get_page_attribute_map(image):
     soup = BeautifulSoup(hocr, 'html.parser')
     paras = soup.find_all('p')
     attribution_map = {}
+    
     for p in paras:
         p_bbox = p['title'].split(' ')[1:]
         final_box = list(map(int, p_bbox))

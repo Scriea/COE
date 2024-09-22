@@ -7,3 +7,10 @@ font="sans serif"
 
 [browser]
 gatherUsageStats = false
+
+[logger]
+level = "error"
+
+showWarningOnDirectExecution = false
+showErrorDetails = false
+toobarMode="viewer"

@@ -15,28 +15,24 @@ def get_document_map(pdf_path, input_path, output_path, images_folder):
     jpegopt = {"quality": 100, "progressive": True, "optimize": False}
     output_file = simple_counter_generator("page", ".jpg")
 
-    if not os.path.exists(output_path + pdf_path[:-4]):
-        os.mkdir(output_path + pdf_path[:-4])
-
-    if not os.path.exists(images_folder):
-        os.mkdir(images_folder)
-
+    # Ensure the output paths exist
+    os.makedirs(output_path, exist_ok=True)
+    os.makedirs(images_folder, exist_ok=True)
+    # Convert PDF to images
     convert_from_path(
-        input_path + pdf_path,
+        os.path.join(input_path, pdf_path),
         output_folder=images_folder,
         dpi=300,
         fmt="jpeg",
         jpegopt=jpegopt,
         output_file=output_file,
     )
-
     # Now parse images
     final_map = {}
 
     for imfile in os.listdir(images_folder):
-        finalimgtoocr = images_folder + "/" + imfile
+        finalimgtoocr = os.path.join(images_folder, imfile)
         image = cv2.imread(finalimgtoocr)
         pg_attr_map = get_page_attribute_map(image)
         final_map[imfile] = pg_attr_map
-
     return final_map

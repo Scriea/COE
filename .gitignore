@@ -5,6 +5,10 @@ temp/
 run/
 runs/
 src/ocr/runs/
+src/table_attributor/resources/
+src/table_attributor/documents/
+./resources
+./documents
 frist_page.png
 
 data/

@@ -5,6 +5,11 @@ from fuzzywuzzy import fuzz
 from .doc_handler import get_document_map
 from difflib import SequenceMatcher
 
+ROOT = os.path.abspath(
+    os.path.join((os.path.dirname(os.path.relpath(__file__))), "../../")
+)
+TEMP_DIR = os.path.join(ROOT, "temp")
+
 
 def similarity(a, b):
     return fuzz.partial_ratio(a.lower(), b.lower())
@@ -12,7 +17,7 @@ def similarity(a, b):
 
 
 def get_attributed_image(pdf_path, answer):
-    TEMP_DIR = "/home/iitb_admin_user/ashutosh/COE/temp"
+    # TEMP_DIR = "/home/iitb_admin_user/ashutosh/COE/temp"
     input_path = os.path.join(TEMP_DIR, "documents")
     output_path = os.path.join(input_path, "output")
     pdf_base = os.path.basename(pdf_path)

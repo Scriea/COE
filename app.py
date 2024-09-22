@@ -18,9 +18,9 @@ from src.asr import ASR  # Import your ASR class
 from src.table_attributor import get_attributed_image
 from audiorecorder import audiorecorder  # Import the audiorecorder
 
-sys.path.append("/home/iitb_admin_user/kaushik/COE/src/table_attributor")
+# sys.path.append("/home/iitb_admin_user/kaushik/COE/src/table_attributor")
 
-# os.makedirs("./temp/documents", exist_ok=True)
+os.makedirs("./temp/documents", exist_ok=True)
 
 lang_index = {"English": 1, "Hindi": 2, "Tamil": 3}
 index_lang = {1: "English", 2: "Hindi", 3: "Tamil"}

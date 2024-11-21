@@ -14,3 +14,5 @@ pdf2image
 PyMuPDF
 tqdm
 python-multipart
+streamlit
+sentence-transformers

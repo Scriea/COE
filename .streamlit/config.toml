@@ -14,3 +14,6 @@ level = "error"
 showWarningOnDirectExecution = false
 showErrorDetails = false
 toobarMode="viewer"
+
+[server]
+port = 5005

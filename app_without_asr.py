@@ -14,9 +14,9 @@ from src.generator import prompts
 from src.hallucination.hallucination import HalluCheck, SelfCheckGPT
 from src.ocr import DocumentReader
 from src.translation.apicall import TranslateModule
-from src.asr import ASR  # Import your ASR class
+# from src.asr import ASR  # Import your ASR class
 from src.table_attributor import get_attributed_image
-from audiorecorder import audiorecorder
+# from audiorecorder import audiorecorder
 
 # sys.path.append("/home/iitb_admin_user/kaushik/COE/src/table_attributor")
 
@@ -106,20 +106,20 @@ def clear_chat_history():
     st.session_state.image = None
 
     # Explicitly clear the input of the audio recorder
-    audiorecorder_input_reset()
+    # audiorecorder_input_reset()
 
 
-# Function to reset audiorecorder input explicitly
-def audiorecorder_input_reset():
-    # Reset the audiorecorder input by setting the state to None
-    st.session_state.audio = None
+# # Function to reset audiorecorder input explicitly
+# def audiorecorder_input_reset():
+#     # Reset the audiorecorder input by setting the state to None
+#     st.session_state.audio = None
 
 
 # Function to handle audio recording with explicit reset capability
-def handle_audio_recording():
-    # Reset the audio input each time this function is called
-    audiorecorder_input_reset()
-    return audiorecorder(" ► ", " ◼ ")
+# def handle_audio_recording():
+#     # Reset the audio input each time this function is called
+#     audiorecorder_input_reset()
+#     return audiorecorder(" ► ", " ◼ ")
 
 
 ## General Configuration
@@ -256,7 +256,7 @@ attribution_module = load_attribution_module()
 generator = load_generator()
 hallucination_checker = load_hallucination_checker()
 dr = load_documentReader()
-asr = ASR()  # Initialize ASR class
+# asr = ASR()  # Initialize ASR class
 translator = load_translate(st.session_state.user_lang)
 
 # Sidebar configuration
@@ -273,11 +273,11 @@ with st.sidebar:
     ]
 
     # Check if the language has changed
-    if prev_lang != st.session_state.user_lang:
-        st.session_state.display_audio = False
-        st.session_state.audio_text = ""  # Clear transcribed text
-        st.session_state.audio = None
-
+    # if prev_lang != st.session_state.user_lang:
+        # st.session_state.display_audio = False
+        # st.session_state.audio_text = ""  # Clear transcribed text
+        # st.session_state.audio = None
+# 
     # Add a PDF uploader in the sidebar
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
     if uploaded_file is not None:
@@ -350,51 +350,51 @@ with st.sidebar:
                 st.success("Document processed successfully!")
 
     # Toggle button for audio recorder
-    if st.button("Toggle Recorder"):
-        st.session_state.show_recorder = (
-            not st.session_state.show_recorder
-        )  # Toggle the visibility state
+    # if st.button("Toggle Recorder"):
+    #     st.session_state.show_recorder = (
+    #         not st.session_state.show_recorder
+    #     )  # Toggle the visibility state
 
     # Audio recording using the handle_audio_recording function only when button is toggled on
-    if st.session_state.show_recorder:
-        st.write("### Record Audio")
-        st.session_state.audio = handle_audio_recording()
+    # if st.session_state.show_recorder:
+    #     st.write("### Record Audio")
+    #     st.session_state.audio = handle_audio_recording()
 
-        # Check if new audio is recorded
-        if len(st.session_state.audio) > 0:
-            current_timestamp = datetime.now().timestamp()
+    #     # Check if new audio is recorded
+    #     if len(st.session_state.audio) > 0:
+    #         current_timestamp = datetime.now().timestamp()
 
-            # Check if it's a new audio by comparing timestamps
-            if (
-                st.session_state.audio_timestamp is None
-                or st.session_state.audio_timestamp != current_timestamp
-            ):
-                # Update the timestamp to current time
-                st.session_state.audio_timestamp = current_timestamp
+    #         # Check if it's a new audio by comparing timestamps
+    #         if (
+    #             st.session_state.audio_timestamp is None
+    #             or st.session_state.audio_timestamp != current_timestamp
+    #         ):
+    #             # Update the timestamp to current time
+    #             st.session_state.audio_timestamp = current_timestamp
 
-                # Reset the states if new audio is recorded
-                st.session_state.audio_uploaded = False
-                st.session_state.display_audio = False
-                st.session_state.audio_text = ""  # Clear previous transcription
+    #             # Reset the states if new audio is recorded
+    #             st.session_state.audio_uploaded = False
+    #             st.session_state.display_audio = False
+    #             st.session_state.audio_text = ""  # Clear previous transcription
 
-                # Save the recorded audio to a file
-                audio_file_path = "audio.wav"
-                st.session_state.audio.export(audio_file_path, format="wav")
+    #             # Save the recorded audio to a file
+    #             audio_file_path = "audio.wav"
+    #             st.session_state.audio.export(audio_file_path, format="wav")
 
-                # Process the recorded audio with ASR
-                with st.spinner("Processing Audio..."):
-                    results = asr.speech_to_text(
-                        audio_file_path, index_lang[st.session_state.user_lang]
-                    )
-                st.session_state.audio_text = results
-                st.session_state.audio_uploaded = (
-                    True  # Set flag to indicate audio is uploaded
-                )
-                st.session_state.display_audio = True
+    #             # Process the recorded audio with ASR
+    #             with st.spinner("Processing Audio..."):
+    #                 results = asr.speech_to_text(
+    #                     audio_file_path, index_lang[st.session_state.user_lang]
+    #                 )
+    #             st.session_state.audio_text = results
+    #             st.session_state.audio_uploaded = (
+    #                 True  # Set flag to indicate audio is uploaded
+    #             )
+    #             st.session_state.display_audio = True
 
-                # Hide recorder utilities after processing and force rerun
-                st.session_state.show_recorder = False
-                st.rerun()  # Rerun to refresh the UI
+    #             # Hide recorder utilities after processing and force rerun
+    #             st.session_state.show_recorder = False
+    #             st.rerun()  # Rerun to refresh the UI
 
     st.button("Clear Chat History", on_click=clear_chat_history)
 
@@ -408,22 +408,22 @@ for message in st.session_state.chat_history:
 user_query = st.chat_input("Enter your medical query:")
 
 # Prevent reprocessing of the same transcribed text if it's already the last user query
-if not user_query and st.session_state.audio_text:
-    # Check if the transcribed text is already the last user query
-    last_user_query = (
-        st.session_state.chat_history[-1]["content"]
-        if st.session_state.chat_history[-1]["role"] == "user"
-        else ""
-    )
-    if st.session_state.audio_text.capitalize() != last_user_query:
-        user_query = st.session_state.audio_text.capitalize()
-        st.session_state.audio_text = ""  # Clear transcribed text after use
-        st.session_state.show_recorder = False  # Reset the recorder button state
-        st.session_state.chat_history.append({"role": "user", "content": user_query})
-        with st.chat_message("user"):
-            st.write(user_query)
+# if not user_query and st.session_state.audio_text:
+#     # Check if the transcribed text is already the last user query
+#     last_user_query = (
+#         st.session_state.chat_history[-1]["content"]
+#         if st.session_state.chat_history[-1]["role"] == "user"
+#         else ""
+#     )
+#     if st.session_state.audio_text.capitalize() != last_user_query:
+#         user_query = st.session_state.audio_text.capitalize()
+#         st.session_state.audio_text = ""  # Clear transcribed text after use
+#         st.session_state.show_recorder = False  # Reset the recorder button state
+#         st.session_state.chat_history.append({"role": "user", "content": user_query})
+#         with st.chat_message("user"):
+#             st.write(user_query)
 
-elif user_query:
+if user_query:
     st.session_state.chat_history.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.write(user_query)
